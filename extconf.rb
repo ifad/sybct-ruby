@@ -1,12 +1,12 @@
 require 'mkmf'
 
-## ASE11 linux
-# sybase = "/opt/sybase"
-# sybase_ocs = "#{sybase}"
+## ASE linux
+sybase = "/opt/sybase"
+sybase_ocs = sybase
 
 ## ASE12.5 linux
-sybase = "/opt/sybase-12.5"
-sybase_ocs = "#{sybase}/OCS-12_5"
+#sybase = "/opt/sybase-12.5"
+#sybase_ocs = "#{sybase}/OCS-12_5"
 
 ## gcc
 $LDFLAGS = " -L#{sybase_ocs}/lib " 
@@ -69,9 +69,9 @@ $LOCAL_LIBS = "-lct -lcs -lsybtcl -lcomn -lintl -rdynamic -ldl -lnsl -lm"
 
 ### Linux + Free TDS (freetds-0.64 or above) ################
 # sybase = "/usr/local/freetds"
-# $CFLAGS = "-g -Wall -DFREETDS -I#{sybase}/include"
-# $LDFLAGS = " -L#{sybase}/lib " 
-# $LOCAL_LIBS = "-lct  -lsybdb -ltds -rdynamic -ldl -lnsl -lm"
+$CFLAGS = "-g -Wall -DFREETDS -I#{sybase}/include"
+$LDFLAGS = " -L#{sybase}/lib"
+$LOCAL_LIBS = "-lct  -lsybdb -rdynamic -ldl -lnsl -lm"
 
 ### mac-osx-tiger + Free TDS (freetds-0.64 ) ################
 # sybase = "/usr/local/freetds"
