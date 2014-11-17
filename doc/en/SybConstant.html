@@ -1,0 +1,28 @@
+<html>
+<head>
+<TITLE>SybConstant class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+
+<h1>SybConstant module</h1>
+  This module defines Client-Library's CS_****-shaped constants as Ruby's
+  class constants.<br>
+  However, every constants of Client Library are not defined.<br>
+  The following script tells which constants is defined.
+<pre>
+    % ruby
+    require "sybct.rb"
+    SybConstant.constants.each { |x| print x,"\n" }
+    ^D
+</pre>
+<p>
+
+
+
+</body>
+</html>

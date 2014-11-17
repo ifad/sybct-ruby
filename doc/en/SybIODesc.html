@@ -1,0 +1,64 @@
+<html>
+<head>
+<TITLE>SybIODesc class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+<h1>SybIODesc</h1>
+<ul>
+  SybIODesc implements <b>CS_IODESC</b> structure  (data I/O
+  descriptor) of SyBase Client Library.<br>
+  Normally, this object is retrieved by 
+  <a href="SybCommand.html#get_iodesc">SybCommand#get_iodesc</a> method.
+</ul><p>
+
+<h3>Methods</h3>
+<dl>
+<dt><b>props ( <var>hash</var>=nil )</b><p>
+<dd>
+  If <b><var>hash</var></b> was specified in param, This method updates
+  fields of CS_IODESC structure, and returns a Hash object after
+  update <p>
+
+  If <b><var>hash</var></b> was omitted, This method returns the
+  current fields of CS_IODESC structure as Hash object.<p>
+
+  <b><var>hash</var></b> parameter's key is equivalent to the
+fieldname of CS_IODESC structure.<br>
+  <b><var>hash</var></b> parameter's value is equivalent to the field value of CS_IODESC structure.<br>
+  <br>
+  <table border=1>
+  <caption>
+  Details for key-value pair for <b><var>hash</var></b> parameter
+  </caption>
+  <tr><th> Key </th><th>Value</th>
+  <tr><td>'datatype'</td>
+         <td>SybConstant::CS_IMAGE_TYPE<br> or CS_TEXT_TYPE</td>
+  <tr><td>'total_txtlen'</td><td>Total data length ,in bytes</td>
+  <tr><td>'log_on_update'</td>
+          <td>true --  The server updates transaction log<br>
+              false -- The server does not update transaction log<br>
+  <tr><td>'name'</td><td>column name</td>
+  <tr><td>'timestamp'</td><td> timestamp(String object)</td>
+  <tr><td>'textptr'</td><td>The text pointer fot the column(String object)</td>
+  </table>
+<p>
+  <dl>
+  <b>Examples</b><br>
+  ( Does not update transaction log, and Sets total lenghth to 1234 byte.)<br>
+  <dd>
+  <pre>
+  iodesc.props( { 'log_on_update'=> false ,
+                  'total_txtlen' => 1234 } )
+  </pre>
+</dl>
+
+
+</body>
+</html>
+    
+

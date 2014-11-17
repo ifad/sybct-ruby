@@ -1,0 +1,306 @@
+<html>
+<head>
+<TITLE>SybCommand class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybCommand</h1>
+<ul>
+  SyBase クライアントライブラリーの CS_COMMAND構造体の<b>Ruby</b>への
+  実装です。
+</ul><p>
+
+<h3>クラスメソッド</h3>
+<dl>
+<dt><b>new ( con, cmd, type=CS_LANG_CMD ) </b><br>
+<dd>
+  T-SQL、ストアドプロシジャなどのコマンドを開始します。<br>
+  (SyBase Client-Library の  ct_cmd_alloc + ct_command に相当)<p>
+  <b> con</b> には、<a href="SybConnection.html">SybConnection</a>オブ
+ジェクトを指定してください。<p>
+  <b> cmd </b> には、"select xxx,yyy from table" などのT-SQLコマンドストリ
+  ングを指定します。<p>
+  <b> type </b> には、開始するコマンドのタイプを、SybConstant モジュー
+  ルの定数で指定します。<br>
+  現在、サポートしているのは、<b>CS_LANG_CMD</b> と 
+  <b>CS_SEND_DATA_CMD</b>だけです。<p>
+  エラーが生じると、RuntimeError 例外を発生します。<p>
+
+<dt><a name="cursor_new"><b>cursor_new ( con, csrname, langcmd, opt=CS_UNUSED )</b></a><br>
+<dd>
+  コマンドを開始し、同時にクライアントライブラリー カーソルの割り当てを行ないます。<br>
+  (SyBase Client-Library  の   ct_cmd_alloc +  ct_cursor(CS_CURSOR_DECLARE)  に相当)<p>
+  <b> con</b> には、<a href="SybConnection.html">SybConnection</a>オブ
+ジェクトを指定してください。<p>
+
+  <b> csrname </b> には、割り当てるカーソルの名前を指定します<p>
+
+  <b> langcmd </b> には、"select xxx,yyy from table for update of yyy" 
+などのカーソルボディを表す SQL コマンドストリングを指定します。<p>
+
+  <b> opt </b> には、カーソル割り当てのオプションを、SybConstant モジュー
+  ルの定数で指定します。<br>
+  現在、サポートしているのは、<b>CS_FOR_UPDATE</b> と 
+  <b>CS_READ_ONLY</b>及びデフォルトの<b>CS_UNUSED</b>だけです。<p>
+  エラーが生じると、RuntimeError 例外を発生します。<p>
+
+  割り当てられたカーソルは、<a href="#delete">delete</a>メソッドを発行
+  するか、 SybCommand オブジェクトがガベージコレクションされる時に廃棄
+  されます。<p>
+
+</dl>
+
+<h3>メソッド</h3>
+<dl>
+<dt><b>send</b><br>
+<dd>
+  コマンドを SyBase SQLサーバに送信します（SyBase CTLib の ct_sendに相
+  当）<br>
+  成功すると、 true を返します。<p>
+
+<dt><a name="delete"><b>delete</b></a><br>
+<dd>
+  コマンドを廃棄します。<br>
+  cursor_new で割り当てられたカーソルも廃棄されます。<p>
+  成功すると、 true を返します。<p>
+
+<dt><b>results</b><br>
+<dd>
+  結果セットを検索し、以下の結果タイプが返却されます。<p>
+    <menu>
+    <li><b>nil</b> -- もう処理すべき結果セットがない
+    <li><b>false</b> -- エラー
+    <li><b>SybConstant::CS_CMD_SUCCEED</b> (ローを返さないコマンドの正常終了通知)
+    <li><b>SybConstant::CS_CMD_DONE</b> (コマンドの正常処理を通知)
+    <li><b>SybConstant::CS_CMD_FAIL</b>(サーバエラーを通知)
+    <li><b>SybConstant::CS_ROW_RESULT</b>(通常ロー結果)
+    <li><b>SybConstant::CS_PARAM_RESULT</b>(リターンパラメータ結果)
+    <li><b>SybConstant::CS_STATUS_RESULT</b>(ストアドプロシジャー リターンステータス)
+    <li><b>SybConstant::CS_COMPUTE_RESULT</b>(compute ロー結果)
+    </menu>
+   <p>
+
+<dt><b>bind_columns (maxcolumns=nil)</b><br>
+<dd>
+  SyBase CTLib の ct_bind を発行し、SybCommand オブジェクトの内部変数
+  にバインドし、カラム名の配列を返します。<br>
+  Ruby変数へは、bind_columns 実行の後、fetch メソッドを実行
+  してからバインドされます。<p>
+  <b>maxcolumns</b> には通常 <b>nil</b> を指定しますが、データ I/O 記述子構造体
+  (<a href="SybIODesc.html">SybIODesc</a>)を検索する時は、ここに、
+    バインドする最大カラム番号を指定します。<br>
+     0 はバインドしません。<p>
+  なを、このメソッドによって返されるカラム名の配列には、バインドしなかっ
+  たカラム名も含まれます。<p>
+
+<dt><b>fetch ( strip=true)</b><br>
+<dd>
+  Sybase CTLib の ct_fetch に相当します。<p>
+  結果ローを、一つだけフェッチし、フェッチステータスとロー配列を返します。<br>
+  (status, row ) = cmdobj.fetch()<br>
+  status は、以下の値を持ちます。
+    <menu>
+    <li><b>false</b> -- 初期化エラー
+    <li><b>SybConstant::CS_END_DATA</b> 返すべきローがない
+    <li><b>SybConstant::CS_SUCCEED</b> 正常にローをフェッチした
+    <li><b>SybConstant::CS_ROW_FAIL</b>
+    <li><b>SybConstant::CS_FAIL</b>
+    <li><b>SybConstant::CS_CANCELED</b>
+    </menu><p>
+
+  <b>strip</b>がtrue なら フェッチした項目の後続ブランクを切り詰めます。 <p>
+
+<dt><b>fetchloop (maxrows=0, strip=true, bcol=nil, rproc=nil)</b><br>
+<dd>
+  結果ローを、全てフェッチし、正常終了の場合は 長さ２の配列を返し、エラー時
+  は falseを返します。<br>
+  返却値配列の最初の要素は、カラム情報の配列で、２番目の要素は、データ
+  ローの配列の配列です。<p>
+
+  <dl>
+  <dt><b>maxrows</b> 
+  <dd>フェッチする最大のロー数で、０は制限なしです。<p>
+  <dt><b>strip</b>
+  <dd>true なら フェッチした項目の後続ブランクを切り詰めます。 
+  <dt><b>bcol</b>
+  <dd>通常は、nil を指定しますが、データ I/O 記述子構造体
+     (<a href="SybIODesc.html">SybIODesc</a>)を検索する時は、ここに、
+    バインドする最大カラム番号を指定します。<br>
+     0 はバインドしません。
+  <dt> <b>rproc</b>
+  <dd>
+     1 ローフェッチする度に呼び出される、ユーザ定義の手続きオブジェクトです。<p>
+     <dl>
+     <dt>rproc { |cmd,status,column,row| .... }
+     <dd>
+       <table border=0>
+       <tr><td colspan=2>
+       <tr><td valign=top>cmd</td><td>SybCommand オブジェクト</td>
+       <tr><td valign=top>status</td><td>SybConstant::CS_SUCCEED または SybConstant::CS_ROW_FAIL</td>
+       <tr><td valign=top>column</td><td>カラム名配列</td>
+       <tr><td valign=top>row</td><td>ローデータの配列</td>
+       </table>
+     <dt>リターン値<br>
+     <dd>
+     <table border=0>
+       <tr><td valign=top>true</td><td>rowをfetchloopが返すロー配列に加える</td>
+       <tr><td valign=top>nil</td><td>rowをfetchloopが返すロー配列に加えない。<br>
+			(巨大ローを検索する時に、メモリを節約するのに使える)</td>
+       <tr><td valign=top>false</td><td> fetch をキャンセルする。</td>
+       </table>
+     </dl>
+  </dl><p>
+
+<dt><b>fetch_rowfail( on )</b><br>
+<dd>
+  fetchloop メソッドにおいて、CS_ROW_FAIL のローを検索結果として返すか
+  どうかを設定します。<P>
+  <b>fetch_rowfail(true)</b> なら、CS_ROW_FAIL のロー結果は、fetchloopの結果に含まれま
+  すが、<b>fetch_rowfail(false)</b>なら、CS_ROW_FAIL のロー結果はnilと
+  して、fetchloopの結果に含まれます。<p>
+  fetchloop メソッドのデフォルトの振舞いは、fetch_rowfail(false) です。<p>
+
+<dt><b>cancel (type=SybConstant::CS_CANCEL_CURRENT )</b><br>
+<dd>
+  コマンドとコマンド結果を無効にします(SyBase CTLib の ct_cancelに相当)<p>
+  <b>type</b> には、SybConstant::CS_CANCEL_CURRENT、SybConstant::CS_CANCEL_ATTN、
+SybConstant::CS_CANCEL_ALLのいずれかを設定できます。<p>
+  成功すると、 true を返します。<p>
+
+<dt><b>setprop(proptype, val)</b><br>
+<dd>
+  コマンドレベルでの、クライアントライブラリー特性を設定し、成功すると 
+true、失敗すると falseを返します。
+ (SyBase CTlib の ct_cmd_props(CS_SET) に相当)<p>
+  proptype には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>getprop(proptype)</b><br>
+<dd>
+  コマンドレベルでの、クライアントライブラリー特性を検索します。
+ (SyBase CTlib の ct_cmd_props(CS_GET) に相当)<p>
+  proptype には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>res_info(type)</b><br>
+<dd>
+  結果セット情報を検索します。
+ (SyBase CTlib の ct_res_info に相当)<p>
+  type には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>get_iodesc(item)</b><br>
+<dd>
+  SyBase CTlib の  ct_data_info() API によって、<a href="SybIODesc.html">SybIODesc</a>
+  （データ I/O 記述子構造体）を検索します。<p>
+  <b>item </b>には、対象となるデータ項目のカラム番号（start from 1）を指定
+  します。<p>
+  成功すれば、SybIODesc オブジェクトを返し、失敗すれば、
+  SybConstant::CS_FAILなどを返します<p>
+
+<dt><b>set_iodesc(iodesc)</b><br>
+<dd>
+  SyBase CTlib の ct_data_info() API によって、<a href="SybIODesc.html">SybIODesc</a>
+  （データ I/O 記述子構造体）を設定します。<p>
+  <b>iodesc </b>には、設定すべきSybIODescオブジェクトを指定します。<p>
+
+  成功すれば、SybConstant::CS_SUCCEEDを返し、失敗すれば、
+  SybConstant::CS_FAILなどを返します<p>
+
+<dt><b>get_data(item, fetchsize)</b><br>
+<dd>
+  SyBase CTlib の ct_get_data() API によって、データの固まりをサーバから読み込みます。<br>
+  <b>item </b>には、対象となるデータ項目のカラム番号（start=1）を指定
+  し、<b>fetchsize</b>には、読み出すバイトサイズを指定します。<br>
+  get_iodescメソッドによる SybIODesc オブジェクトを検索するためだけに
+  使用する場合、fetchsize = 0 の指定も可能です。<p>
+  返り値は、ステータス情報と読み出したデータ（String オブジェクト）の
+  配列になります。<br>
+  例<br>
+  (status, buffer ) = cmdobj.get_data( 3, 1024)<p>
+  statusは以下の値を持ちます。<br>
+  SybConstant::CS_END_ITEM<br>
+  SybConstant::CS_END_DATA<br>
+  SybConstant::CS_SUCCEED<br>
+  SybConstant::CS_FAIL<br>
+  何もデータを読み出さなかった場合は、buffer = nil になります<p>
+
+<dt><b>send_data(data)</b><br>
+<dd>
+  SyBase CTlib の ct_get_data() API によって、データの固まりをサーバに送り込みます。<p>
+  <b>data </b>には、送るデータを String オブジェクトで指定します。<p>
+  返り値は、<br>
+  　SybConstant::CS_SUCCEED -----  成功<br>
+  　SybConstant::CS_FAIL または SybConstant::CS_CANCELED ------ 失敗<br>
+です。<p>
+  注意：<br>
+  同じ接続で継続中の SybCommand オブジェクトがある場合エラーします。<p>
+
+
+<dt><b>cursor_state()</b><br>
+<dd>
+  現在のカーソルステータスを取得します。<p>
+
+  Client-Library の <b>ct_cmd_props( cmd,  CS_GET, CS_CUR_STATUS )</b>に相当
+  します。<p>
+
+  カーソルがない場合は、 SybConstant::CS_CURSTAT_NONE を返し、カーソル
+  がある場合は、
+  <ul type=disc>
+    <li>SybConstant::CS_CURSTAT_CLOSED<br>
+    <li>SybConstant:: CS_CURSTAT_DECLARED<br>
+    <li>SybConstant::CS_CURSTAT_ROWCOUNT<br>
+    <li>SybConstant::CS_CURSTAT_OPEN<br>
+    <li>SybConstant::CS_CURSTAT_UPDATABLE<br>
+    <li>SybConstant:: CS_CURSTAT_RDONLY<br>
+  </ul>
+のビットマスクを返します。<p>
+
+<dt><a name="cursor_rows"><b>cursor_rows(rows)</b></a><br>
+<dd>
+  Client-Library の <b>ct_cursor( CS_CURSOR_ROWS )</b>に相当
+  します。<br>
+  <b>rows</b> には、１回のフェッチ要求で返されるロー数を指定します。<p>
+
+<dt><b>cursor_open()</b><br>
+<dd>
+  Client-Library の <b>ct_cursor( CS_CURSOR_OPEN )</b>に相当
+  します。<p>
+
+<dt><b>cursor_option(opt)</b><br>
+<dd>
+  Client-Library の <b>ct_cursor( CS_CURSOR_OPTION )</b>に相当
+  します。<br>
+  opt は、SybConstant::CS_FOR_UPDATA, SybConstant::CS_READ_ONLY, 
+    nil(SybConstant::CS_UNUSED) を指定します。<p>
+
+<dt><b>cursor_update(table, sql)</b><br>
+<dd>
+  Client-Library の <b>ct_cursor( CS_CURSOR_UPDATE )</b>に相当
+  します。<br>
+  table には更新するテーブル名、sql には update SQLコマンドを指定しま
+  す<p>
+
+<dt><b>cursor_delete(table)</b><br>
+<dd>
+  Client-Library の <b>ct_cursor( CS_CURSOR_DELETE )</b>に相当
+  します。<br>
+  table には削除するローのテーブル名を指定します。<p>
+
+<dt><b>cursor_close()</b><br>
+<dd>
+  Client-Library の <b>ct_cursor( CS_CURSOR_CLOSE )</b>に相当
+  します。<p>
+
+
+</dl>
+
+
+</body>
+</html>
+    
+

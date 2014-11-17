@@ -1,0 +1,138 @@
+<html>
+<head>
+<TITLE>SybConnection class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+<h1>SybConnection</h1>
+<ul>
+  SybConnection implements <b>CS_CONNECTION</b> structure of SyBase Client
+Library.
+</ul><p>
+
+<h3>Class Method</h3>
+<dl>
+<dt><b>new ( <var>ctx</var> )</b><br>
+<dd>
+  Creates a SybConnection object anew.<br>
+  (This method corresponds to <b>ct_con_alloc</b> of Sybase Client Library.)<p>
+  <b>Parameters</b>
+  <dl>
+  <dd><b><var>ctx</var></b>  --- 
+     <a href="SybContext.html">SybContext</a> object<br>
+  </dl>
+<p>
+
+<dt></var><b>open ( <var>server</var>, <var>user</var>, 
+                  <var>passwd</var>=nil, <var>appname</var>=nil,
+                  <var>hostname</var>=nil )</b><br>
+<dd>
+  Creates a SybConnection object anew, and connects to a server<p>
+
+  If error has occurred, then it raise a RuntimeError exception.<p>
+  <b>Parameters</b>
+  <ul type=disc>
+   <li><b><var>server</var></b><br>
+     The name of the server to connect to.
+   <li><b><var>user</var></b><br>
+     The name used to log into the server.
+   <li><b><var>passwd</var></b><br>
+     The password used to log into the server.
+   <li><b><var>appname</var></b><br>
+     The application name.
+   <li><b><var>hostname</var></b><br>
+     The host machine name
+   </ul>
+</dl>
+
+<h3>Methods</h3>
+<dl>
+<dt><b>connect ( <var>server</var>, <var>user</var>, 
+                 <var>passwd</var>=nil, <var>appname</var>=nil)</b><br>
+<dd>
+  Connects to a server<br>
+  (This method corresponds to <b>ct_connect</b> of Sybase Client Library.)<p>
+  If error has occurred, then it raise a RuntimeError exception.<p>
+  
+  <b>Parameters</b>
+  <ul type=disc>
+   <li><b><var>server</var></b><br>
+     The name of the server to connect to.
+   <li><b><var>user</var></b><br>
+     The name used to log into the server.
+   <li><b><var>passwd</var></b><br>
+     The password used to log into the server.
+   <li><b><var>appname</var></b><br>
+     The application name.
+   </ul>
+  <p>
+
+<dt><b>close ( <var>force</var>=false )</b><br>
+<dd>
+  Close a server connection<br>
+  (This method corresponds to <b>ct_close</b> of Sybase Client Library.)<p>
+
+  If the <b><var>force</var></b> parameter is true, the connection is
+closed whether or not results are pending, and without notifying the
+server.<p>
+
+  Returns TRUE if it was successful, FALSE otherwise. <p>
+
+<dt><b> delete ( <var>force</var>=false )</b><br>
+<dd>
+  Close a server connection if it is existing, and deallocates
+  the connection object<p>
+  If the <b><var>force</var></b> parameter is TRUE, the connection is
+closed whether or not results are pending, and without notifying the
+server.<p>
+  Returns TRUE if it was deleted successfully.<p>
+
+<dt><b>setprop ( <var>proptype</var>, <var>val</var> )</b><br>
+<dd>
+  Sets Client-Library properties at the connection structure levels.<br>
+  This method corresponds to <b>ct_con_props(CS_SET)</b> of 
+Sybase Client Library.<p>
+  The <b><var>proptype</var></b> parameter  must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+  Returns TRUE if it was successful<p>
+
+<dt><b>getprop ( <var>proptype</var>)</b><br>
+<dd>
+  Retrieves Client-Library properties at the connection structure levels.<br>
+  This method corresponds to <b>ct_con_props(CS_GET)</b> of 
+Sybase Client Library.<p>
+  The <b><var>proptype</var></b> parameter must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+
+<dt><b>setopt ( <var>option</var>, <var>val</var>)</b><br>
+<dd>
+  Sets the value of server options.<br>
+  This method corresponds to <b>ct_options(CS_SET)</b> of
+ Sybase Client Library.<p>
+
+  The <b><var>option</var></b> parameter must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+
+  Returns TRUE if it was successful.<p>
+
+<dt><b>getopt ( <var>option</var> )</b><br>
+<dd>
+  Retrieves the value of server options.<br>
+  This method corresponds to <b>ct_options(CS_GET)</b> of
+ Sybase Client Library.<p>
+
+  The <b><var>option</var></b> parameter must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+
+</dl>
+
+</body>
+</html>

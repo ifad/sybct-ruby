@@ -1,0 +1,98 @@
+<html>
+<head>
+<TITLE>SybConnection class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybConnection</h1>
+<ul>
+  SyBase クライアントライブラリーの CS_CONNECTION構造体の<b>Ruby</b>への
+  実装です。
+</ul><p>
+
+<h3>クラスメソッド</h3>
+<dl>
+<dt><b>new(ctx)</b><br>
+<dd>
+  新規にSybConnectionオブジェクトを作成します。（SyBase CTLibの
+  ct_con_alloc に相当）<br>
+  <b>ctx</b>には、<a href="SybContext.html">SybContext</a>オブジェクト
+  を指定してください。<p>
+
+<dt><b>open(server,user,passwd=nil,appname=nil,hostname=nil)</b><br>
+<dd>
+  新規にSybConnectionオブジェクトを作成し、SQLサーバとの接続を確立しま
+  す。<p>
+  失敗すると、RuntimeError 例外を発生します。<p>
+  server --- サーバ名を指定<br>
+  user --- ログインユーザ名を指定<br>
+  passwd -- パスワードを指定<br>
+  appname -- アプリケーション名を指定 <br>
+  hostname -- ホスト名を指定<br>
+</dl>
+
+<h3>メソッド</h3>
+<dl>
+<dt><b>connect(server,user,passwd=nil,appname=nil)</b><br>
+<dd>
+  SyBase SQLサーバとの接続を確立します（SyBase CTLib の ct_connectに相
+  当）。<br>
+  失敗すると、RuntimeError 例外を発生します。<p>
+  
+  server --- サーバ名を指定<br>
+  user --- ログインユーザ名を指定<br>
+  passwd -- パスワードを指定<br>
+  appname -- アプリケーション名を指定 <br>
+  <p>
+
+<dt><b>close(force=false)</b><br>
+<dd>
+  サーバ接続をクローズします（SyBase CTLibの ct_closeに相当）。<br>
+  成功すると trueを返します。<p>
+  <b>force</b>に true を設定すると、サーバにログアウトメッセージを送信
+せずに接続を終了します。<p>
+
+<dt><b>delete(force=false)</b><br>
+<dd>
+  サーバ接続があればそれをクローズし、接続構造体を廃棄します<br>
+  成功すると trueを返します。<p>
+  <b>force</b>に true を設定すると、サーバにログアウトメッセージを送信
+せずに接続を終了します。<p>
+
+<dt><b>setprop(proptype, val)</b><br>
+<dd>
+  接続レベルでの、クライアントライブラリー特性を設定し、成功すると 
+true、失敗すると falseを返します。
+ (SyBase CTlib の ct_con_props(CS_SET) に相当)<p>
+  proptype には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>getprop(proptype)</b><br>
+<dd>
+  接続レベルでの、クライアントライブラリー特性を検索します。
+ (SyBase CTlib の ct_con_props(CS_GET) に相当)<p>
+  proptype には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>setopt(option, val)</b><br>
+<dd>
+  サーバオプションを設定し、成功すると true、失敗すると falseを返します。
+ (SyBase CTlib の ct_options(CS_SET) に相当)<p>
+  option には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>getopt(option)</b><br>
+<dd>
+  サーバオプションを検索します。
+ (SyBase CTlib の ct_options(CS_GET) に相当)<p>
+  option には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+</dl>
+
+</body>
+</html>

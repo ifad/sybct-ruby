@@ -1,0 +1,75 @@
+<html>
+<head>
+<TITLE>SybContext class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+<h1>SybContext</h1>
+<ul>
+  SybContext implements <b>CS_CONTEXT</b> structure of SyBase Client
+Library.
+</ul><p>
+
+<h3>Class Method</h3>
+<dl>
+<a name="create"><dt><b>create ( <var>locname</var>=nil, 
+                        <var>timeout</var>=0, <var>async</var>=nil )</b><br>
+<dd>
+  Initialize Client-Library, and creates a SybContext object anew.<p>
+  <b>Parameters:</b>
+  <ul type=disc>
+  <li><b><var>locname</var></b><br>
+    A locale name which is registered in $SYBASE/locales/locales.dat<p>
+  <li><b><var>timeout</var></b><br>
+    The timeout value(seconds) for a server response.<br>
+    (the default is 0 , which represents an infinite timeout period.)<p>
+  <li><b><var>async</var></b><br>
+     The async parameter provides non blocking I/O.<br>
+     If the <b><var>async</var></b> parameter is true, 
+      then CS_DEFER_IO (deferred aynchromous I/O) will be used in netowork I/O.<br>
+     In case of multiple threads application, 
+         you must set this to <b>true</b>.<p>
+  </ul>
+
+</dl>
+
+<h3>Methods</h3>
+<dl>
+<dt><b>destroy ( <var>force</var>=false )</b><br>
+<dd>
+  Exit a Client-Library.<br>
+  Returns TRUE if it was destroyed successfully<br>
+  (This method corresponds to <b>ct_exit</b> of Sybase Client Library.)<p>
+
+  If the <b><var>force</var></b> parameter is TRUE, 
+    then it closes all open connections for this context, 
+     whether or not any results are pending<p>
+
+<dt><b>setprop ( <var>proptype</var>, <var>val</var> )</b><br>
+<dd>
+  Sets Client-Library properties at the context structure levels.<br>
+  The <b><var>proptype</var></b> parameter  must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+  Returns TRUE if it was successful.<p>
+  (This method corresponds to <b>ct_config(CS_SET)</b> of Sybase 
+Client Library.)<p>
+
+
+<dt><b>getprop ( <var>proptype</var> )</b><br>
+<dd>
+  Retrieves Client-Library properties at the context structure levels.<br>
+  The <b><var>proptype</var></b> parameter must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+  (This method corresponds to <b>ct_config(CS_GET)</b> of 
+Sybase Client Library.)<p>
+
+</dl>
+
+</body>
+</html>

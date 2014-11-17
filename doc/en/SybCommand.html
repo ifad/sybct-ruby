@@ -1,0 +1,409 @@
+<html>
+<head>
+<TITLE>SybCommand class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+<h1>SybCommand</h1>
+<ul>
+  SybCommand implements <b>CS_COMMAND</b> structure of SyBase Client
+Library.
+</ul><p>
+
+<h3>Class Method</h3>
+<dl>
+<dt><b>new ( <var>con</var>, <var>cmd</var>, 
+             <var>type</var>=CS_LANG_CMD )</b><br>
+<dd>
+  Initiate a command. <br>
+  (This method corresponds to <b>ct_command</b> of Sybase Client Library.)<p>
+
+  <b>Parameters:</b>
+  <ul type=disc>
+  <li><b><var>con</var></b><br>
+   <a href="SybConnection.html">SybConnection</a> object.<p>
+  <li><b><var>cmd</var></b><br>
+    Language command<p>   
+  <li><b><var>type</var></b><br> 
+    The type of command to initiate<br>
+    The value of  <b><var>type</var></b> is a constant that is defined in 
+    <a href="SybConstant.html">SybConstant</a> module.<br>
+      However, I support only <b>CS_LANG_CMD</b> and 
+    <b>CS_SEND_DATA_CMD</b> yet.<p>
+  </ul>
+  If error has occurred, then it raise a <b>RuntimeError</b> exception.<p>
+
+<dt><a name="cursor_new"><b>cursor_new 
+ ( <var>con</var>, <var>csrname</var>, <var>langcmd</var>, <var>opt</var>=CS_UNUSED )
+</b></a><br>
+<dd>
+  Initiates a command, and declares a cursor.<br>
+  This method corresponds to  <b>ct_cmd_alloc() + ct_cursor( CS_CURSOR_DECLARE)</b>
+of Sybase Client Library.<p>
+ <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>con</var></b><br>
+     <a href="SybConnection.html">SybConnection</a> object.<p>
+  <li><b><var>csrname</var></b><br>
+      a cursor name<p>
+  <li><b><var>langcmd</var></b><br>
+     The SQL text that represents the body of the cursor.<br>
+     e.g. "select xxx,yyy from table for update of yyy" <p>
+  <li><b><var>opt</var></b><br>
+     The option to declare the cursor.<br>
+     However, every options are not supported. Only <b>CS_FOR_UPDATE</b>, <b>CS_READ_ONLY</b> and <b>CS_UNUSED</b> are supported.<p>
+  </ul>
+  <p>
+  If error has occurred, then it raise a <b>RuntimeError</b> exception.<p>
+
+  The cursor is available until a <a href="#delete">delete</a> method
+is called or Ruby's garbage collector finds this.<p>
+</dl>
+
+<h3>Methods</h3>
+<dl>
+<dt><b>send</b><br>
+<dd>
+  Send a command to the server<br>
+  (This method corresponds to <b>ct_send</b> of Sybase Client Library.)<p>
+  Returns TRUE if it was successful, or FALSE if not<p>
+
+<dt><a name="delete"><b>delete</b></a><br>
+<dd>
+  Deallocate a command.<br>
+  If the command has a Client-Library cursor that was assigned with
+<a href="#cursor_new">cursor_new</a>,  then the cursor will be deallocated too.<p>
+  Returns TRUE if it was deleted successfully.<p>
+
+<dt><b>results</b><br>
+<dd>
+  Set up results data to be processed, and returns a
+  results type as follows.<p>
+  <table border=1>
+    <tr><td>CS_CMD_SUCCEED
+        <td>The success of a command that returns no data
+    <tr><td>CS_CMD_DONE
+        <td>The results of a command have been completely processed.
+    <tr><td>CS_CMD_FAIL
+        <td>The server encountered an error while executing a command
+    <tr><td>CS_ROW_RESULT
+        <td>Regular row results
+    <tr><td>CS_PARAM_RESULT
+        <td>Parameter results
+    <tr><td>CS_STATUS_RESULT
+        <td>Stored procedure return status results.
+    <tr><td>CS_COMPUTE_RESULT
+        <td> Compute row results
+  </table><br>
+   <p>
+
+<dt><b>bind_columns ( <var>maxcolumns</var>=nil )</b><br>
+<dd>
+  This method calls <b>ct_bind</b>  of SyBase Client Library, and
+binds server results to Ruby's variables.<br>
+  It returns an array of columns name.<p>
+ <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>maxcolumns</var></b><br>
+     The maximum column number to bind<br>
+     <b><var>nil</var></b> means binding all columns.<br>
+     <b>Zero</b> means binding no columns.<p>
+   </ul>
+
+
+<dt><b>fetch ( <var>strip</var>=true )</b><br>
+<dd>
+  Retrieves one result data.<br>
+  This method corresponds to <b>ct_fetch</b> of Sybase Client Library.<p>
+
+  <b>Parameters</b><br>
+  <ul>
+    Strips the trailing white spaces if <b><var>strip</var></b> is TRUE.<p>
+  </ul>
+
+  <b>Returns:</b><br>
+  Returns the status and an array of result row.<br>
+  (status, row ) = cmdobj.fetch()<br>  
+  The status has the following values.<br>
+    <menu>
+    <li><b>false</b> -- Initialization error
+    <li><b>SybConstant::CS_END_DATA</b> 
+    <li><b>SybConstant::CS_SUCCEED</b> 
+    <li><b>SybConstant::CS_ROW_FAIL</b>
+    <li><b>SybConstant::CS_FAIL</b>
+    <li><b>SybConstant::CS_CANCELED</b>
+    </menu><p>
+
+
+<dt><b>fetchloop ( <var>maxrows</var>=0, <var>strip</var>=true, 
+     <var>bcol</var>=nil, <var>rproc</var>=nil)</b><br>
+<dd>
+<br>
+  Retrieves all result data.<p>
+  Returns an array of two elements, the first element is array of column names
+  , the second element is row datas as an array of array.<br>
+   --&gt; [ [column-name ...] [ [row-data-1] [row-data-2] .... ]  ]<p>
+  If error has occurred, then it returns FALSE.<p>
+
+  <b>Parameters</b><br>
+  <ul type=disc>
+  <li><b><var>maxrows</var></b> <br>
+     The maximum number of rows to fetch. <br>
+     <b><var>maxrows</var></b>=0 means unlimited.<p>
+  <li><b><var>strip</var></b><br>
+    Strips the trailing white spaces if <b><var>strip</var></b> is TRUE.<p>
+  <li><b><var>bcol</var></b><br>
+     The maximum column number to bind<br>
+     <b><var>nil</var></b> means binding all columns.<br>
+     <b>Zero</b> means binding no columns.<p>
+
+  <li> <b><var>rproc</var></b><br>
+     Whenever one row is retrieved, this block is called<p>
+     <dl>
+     <dt>rproc { |<var>cmd</var>,<var>status</var>,
+                  <var>column</var>,<var>row</var>| .... }<br><br>
+     <dt><b>The blocks parameters</b><br>
+        <dd>
+	 <table border=0>
+	 <tr><td colspan=2>
+	 <tr><td valign=top><var>cmd</var></td><td>SybCommand object</td>
+	 <tr><td valign=top><var>status</var></td>
+		<td>SybConstant::CS_SUCCEED or SybConstant::CS_ROW_FAIL</td>
+	 <tr><td valign=top><var>column</var></td>
+		  <td>The array of column names</td>
+	 <tr><td valign=top><var>row</var></td>
+		  <td>The array of a row data</td>
+	 </table>
+     <dt><b>The block's return value</b><br>        
+        <dd>
+	 <table border=0>
+	   <tr><td valign=top>true: 
+	      <td>The <var>row's</var> value is added to the
+	      fetchloop's return value<var><br>
+	   <tr><td valign=top>nil: 
+	      <td>The <var>row's</var> value is not added to the
+	      <b>fetchloop</b>'s return value<br>
+	     (When large number of rows are retrieved, <br>
+		     this is effective in order to save memory)
+	   <tr><td valign=top>false: </td><td> Stop to iterates
+	   </table>
+     </dl>
+  </dl><p>
+
+<dt><b>cancel ( <var>type</var>=SybConstant::CS_CANCEL_CURRENT )</b><br>
+<dd>
+  Cancel a command.<br>
+  This method corresponds to <b>ct_cancel</b> of Sybase Client Library.<p>
+
+  Returns TRUE if it was successful<p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>type</var></b><br>
+     SybConstant::CS_CANCEL_CURRENT, SybConstant::CS_CANCEL_ATTN, or
+  SybConstant::CS_CANCEL_ALL<p>
+  </ul>
+
+<dt><b>setprop ( <var>proptype</var>, <var>val</var> )</b><br>
+<dd>
+  Sets Client-Library properties at the command structure levels.<br>
+  This method corresponds to <b>ct_cmd_props(CS_SET)</b> of 
+Sybase Client Library.<p>
+  The <b><var>proptype</var></b> parameter must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+  Returns TRUE if it was successful, or FALSE if not<p>
+
+<dt><b>getprop ( <var>proptype</var> )</b><br>
+<dd>
+  Retrieves Client-Library properties at the command structure levels.<br>
+  This method corresponds to <b>ct_cmd_props(CS_GET)</b> of 
+Sybase Client Library.<p>
+  The value of  <b><var>proptype</var></b> must be a
+  constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+
+<dt><b>res_info ( <var>type</var> )</b><br>
+<dd>
+  Retrieves current result set or command information.<br>
+  This method corresponds to <b>ct_res_info</b> of 
+Sybase Client Library.<p>
+  The value of <b><var>type</var></b> must be a constant that is defined in
+    <a href="SybConstant.html">SybConstant</a> module.<p>
+
+<dt><a name="get_iodesc"><b>get_iodesc ( <var>item</var> )</b></a><br>
+<dd>
+  Retrieves a data I/O descriptor.<p>
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><var>item</var><br>
+     The number of the IMAGE/TEXT column (start at 1).<p>
+  </ul>
+  Returns a <a href="SybIODesc.html">SybIODesc</a> object if it was
+  successful.<br>
+  If error has occurred, then it returns SybConstant::CS_FAIL.<p>
+  (Please see the Sybase OpenClient manual pages on 
+<b>ct_data_info</b> for further details.)<p>
+
+<dt><b>set_iodesc ( <var>iodesc</var> )</b><br>
+<dd>
+  Define a data I/O descriptor.<p>
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><var>iodesc</var><br>
+    <a href="SybIODesc.html">SybIODesc</a> object to define<p>
+  </ul>
+
+  Returns a SybConstant::CS_SUCCEED if it was successful.<br>
+  If error has occurred, then it returns SybConstant::CS_FAIL.<p>
+
+  (Please see the Sybase OpenClient manual pages on 
+<b>ct_data_info</b> for further details.)<p>
+
+<dt><b>get_data ( <var>item</var>, <var>fetchsize</var> )</b><br>
+<dd>
+  Reads a chunk of data from the server<p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li> <b><var>item</var></b><br>
+     The column number of the Image/Text column (start at 1).<p>
+  <li><b><var>fetchsize</var></b><br>
+     The number of bytes to read.
+     If <var>fetchsize</var> is 0, it updates the I/O descriptor for
+     the item without retrieving any data.<p>
+  </ul>
+
+  <b>Returns</b><br>
+  <ul>
+    This method returns a status and a String object as an array.<br>
+    e.g.<br>
+       (status, buffer ) = cmdobj.get_data( 3, 1024)<p>
+    <b><var>status</var></b> has the following values<br>
+    <ul type=disc>
+      <li>SybConstant::CS_END_ITEM<br>
+      <li>SybConstant::CS_END_DATA<br>
+      <li>SybConstant::CS_SUCCEED<br>
+      <li>SybConstant::CS_FAIL<br>
+    </ul>
+    If there is no data to read, <b><var>buffer</var></b> becomes nil<p>
+  </ul><p>
+
+  (Please see the Sybase OpenClient manual pages on 
+<b>ct_get_data</b> for further details.)<p>
+
+<dt><b>send_data ( data )</b><br>
+<dd>
+  Sends a chunk of TEXT/IMAGE data to the server<p>
+  
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>data</var> </b><br>
+       A String object to send<p>
+  </ul>
+  <b>Returns</b><br>
+  <ul type=disc>
+   <li>SybConstant::CS_SUCCEED<br>
+      It was successful<br>
+   <li>SybConstant::CS_FAIL<br>
+      It failed<br>
+   <li>SybConstant::CS_CANCELED<br>
+      The operation was canceled<br>
+  </ul>
+  <p>
+  (Please see the Sybase OpenClient manual pages on 
+<b>ct_send_data</b> for further details.)<p>
+
+<dt><b>cursor_state ()</b><br>
+<dd>
+  Gets current cursor's status<br>
+  (This method corresponds to 
+    <b>ct_cmd_props( cmd,  CS_GET, CS_CUR_STATUS )</b>  
+of Sybase Client Library.)<p>
+  <b>Returns :</b><br>
+  <menu>
+   If no cursor exists, then it returns
+      <b>SybConstant::CS_CURSTAT_NONE</b>.<br>
+
+  If return value is not <b>CS_CURSTAT_NONE</b>, the application determines
+the cursor status by applying the bitmask values listed in the following.<br>
+  <ul type=disc>
+    <li><b>SybConstant::CS_CURSTAT_CLOSED</b><br>
+    <li><b>SybConstant:: CS_CURSTAT_DECLARED</b><br>
+    <li><b>SybConstant::CS_CURSTAT_ROWCOUNT</b><br>
+    <li><b>SybConstant::CS_CURSTAT_OPEN</b><br>
+    <li><b>SybConstant::CS_CURSTAT_UPDATABLE</b><br>
+    <li><b>SybConstant:: CS_CURSTAT_RDONLY</b><br>
+  </ul>
+  </menu>
+<p>
+
+<dt><a name="cursor_rows"><b> cursor_rows ( <var>rows</var> )</b></a><br>
+<dd>
+  This method corresponds to  <b>ct_cursor ( CS_CURSOR_ROWS ) </b>
+of Sybase Client Library.<p>
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>rows</var></b><br>
+    The number of rows to be returned with a single fetch request.<br>
+  </ul>   
+  <p>
+
+<dt><b>cursor_open ()</b><br>
+<dd>
+  This method corresponds to  <b>ct_cursor( CS_CURSOR_OPEN )</b>
+of Sybase Client Library.<p>
+
+<dt><b>cursor_option( <var>opt</var> )</b><br>
+<dd>
+  This method corresponds to  <b>ct_cursor( CS_CURSOR_OPTION )</b>
+of Sybase Client Library.<p>
+  <b>Parameters</b>
+  <ul type=disc>
+  <li><b><var>opt </var></b><br>
+      SybConstant::CS_FOR_UPDATA or <br>
+      SybConstant::CS_READ_ONLY or <br>
+      nil( SybConstant::CS_UNUSED ) 
+  </ul>
+<p>
+
+<dt><b>cursor_update ( <var>table</var>, <var>sql</var> )</b><br>
+<dd>
+  This method corresponds to  <b>ct_cursor( CS_CURSOR_UPDATE )</b>
+of Sybase Client Library.<p>
+  <b>Parameters</b>
+  <ul type=disc>
+  <li><b><var>table </var></b><br>
+     The table name to update.<br>
+  <li><b><var>sql </var></b><br>
+     The sql update statement.
+  </ul>
+  <p>
+
+<dt><b>cursor_delete( <var>table</var> )</b><br>
+<dd>
+  This method corresponds to  <b>ct_cursor( CS_CURSOR_DELETE)</b>
+of Sybase Client Library.<p>
+  <b>Parameters</b>
+  <ul type=disc>
+  <li><b><var>table </var></b><br>
+    The name of the table to delete from.<br>
+  </ul>
+  <p>
+
+<dt><b>cursor_close()</b><br>
+<dd>
+  This method corresponds to  <b>ct_cursor( CS_CURSOR_CLOSE)</b>
+of Sybase Client Library.<p>
+
+</dl>
+
+
+</body>
+</html>
+    
+

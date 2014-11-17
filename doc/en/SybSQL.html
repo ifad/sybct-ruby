@@ -1,0 +1,640 @@
+<html>
+<head>
+<TITLE>SybSQL class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+<h1>SybSQL</h1>
+
+<ul> 
+<p>
+  SybSQL provides high level interfaces between Ruby and Sybase server.
+
+  This class includes methods that connect to a server, and methods
+that send commands to a server, and methods that process the results.
+
+</ul>
+
+<h3>Contents</h3>
+<ul>
+<li><a href="#clsmethod">Class Method</a><br>
+<li><a href="#conmethod">Methods for connection</a><br>
+<li><a href="#cmdmethod">Methods for sending commands</a><br>
+<li><a href="#resmethod">Methods for processing results</a><br>
+<li><a href="#srvopt">Methods for SQL server options</a><br>
+<li><a href="#image">Methods for Text and Image datatype</a><br>
+<li><a href="#cursor">Methods for Client-Library cursor</a><p>
+</ul>
+
+<h3>Included Modules</h3>
+<menu>
+<li><a href="SybConstant.html">SybConstant</a><br>
+</menu><p>
+
+<a name="clsmethod"><h3>Class Method</h3></a>
+<dl>
+<dt><a name="new"><b>new ( <var>hash</var>, <var>context_class</var>=<a href="SybSQLContext.html">SybSQLContext</a> )</b></a><br>
+<dd>
+  This method initialize Client-Library , and connect to a server by
+properties which specified <b><var>hash</var></b><p>
+
+  <b>Parameters:</b>
+  <ul type=disc>
+  <li><b><var>hash</var></b><br>
+    Specify connection properties as a Hash object.<p>
+    Details for key-value pair<br>
+    <table border=1>
+     <tr valign=top><th>Key<th>Value
+     <tr valign=top><td>'S'<td>The name of the server to connect to. (required)
+     <tr valign=top><td>'U'<td>The name used to log into the server.(required)
+     <tr valign=top><td>'P'<td>The password used to log into the server.<br>
+                 (the default is "" )
+     <tr valign=top><td>'lang'<td>A locale name which is registered in <br>
+              $SYBASE/locales/locales.dat
+     <tr valign=top><td>'timeout'<td>The timeout value(seconds) for a server response.<br>
+                 (the default is 0 , which represents an infinite
+		 timeout period.)
+     <tr valign=top><td>'login-timeout'<td>The login timeout value(seconds)
+     <tr valign=top><td>'appname'<td>The application name used when logging into the server
+     <tr valign=top><td>'hostname'<td>The host machine name used when logging into the server
+     <tr valign=top><td>'async' <td>In case of multiple threads application, 
+         you must set this to <b>true</b>.<br>
+        (the default is false)<br>
+           See also <a href="SybContext.html#create">SybContext.create</a>.
+  </table><p>
+  
+  <li><b><var>context_class</var></b><br>
+  If you want to redefine message-callbacks, please specify subclass
+of <a href="SybSQLContext.html">SybSQLContext</a> to
+<b><var>context_class</var></b>
+l  </ul>
+  <p>
+
+  <b>Examples:</b>
+  <ul type=disc>
+  <li> Server-name: <var>SYBSRV01</var>, Username: <var>sa</var>, 
+      Locale-name: <var>ja_JP.ujis</var><br>
+   <pre>query = SybSQL.new({'S'=>'SYBSRV01','U'=>'sa','P'=>'XXXXXX',
+                            'lang'=>'ja_JP.ujis'} )</pre><br>
+  <li> Redefinition of Server-Message callback<br>
+   <pre>
+class MyContext < SybSQLContext 
+  def srvmsgCB( con,msghash)
+    print "My server-callback\n"
+  end
+end
+query = SybSQL.new({'S'=>'SYBSRV01','U'=>'sa','P'=>'XXXXXX'}, MyContext)</pre><br>
+  </ul>
+
+</dl>
+
+<a name="conmethod"><h3>Methods for connection</h3></a>
+<dl>
+<dt><a name="context"><b>context</b></a><br>
+<dd>
+  Returns the 
+  <a href="SybContext.html">SybContext</a> object.<p>
+
+<dt><a name="connection"><b>connection</b></a><br>
+<dd> 
+  Returns the
+  <a href="SybConnection.html">SybConnection</a> object.<p>
+
+<dt><a name="close"><b>close ( <var>force</var>=false )</b></a><br>
+<dd>
+  Close the server connection, and exit Client-Library.<p>
+  If the <b><var>force</var></b> parameter is true, the connection is
+closed whether or not results are pending, and without notifying the
+server.<p>
+
+<dt><a name="connection_status"><b>connection_status</b></a><br>
+<dd>
+  return connection status<br>
+  return value is  SybConstant::CS_CONSTAT_DEAD, SybConstant::CS_CONSTAT_CONNECTED
+  bit OR <p>
+
+<dt><a name="connection_dead"><b>connection_dead?</b></a><br>
+<dd>
+  This call returns TRUE if the connection has been marked DEAD.<br>
+  You need to reconnect to the server.<p>
+
+</dl>
+<h3><a name="cmdmethod">Methods for sending commands</a></h3>
+<dl>
+
+<dt><a name="sql"><b>sql ( <var>command</var>, <var>nbind</var>=nil )</b></a><br>
+<dd>
+  Runs the SQL commands.<br>
+  You can get query results by the <b>result</b> method later.
+  <p>
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>command</var></b><br>
+     Language commands
+  <li><b><var>nbind</var></b><br>
+     The maximum column number to be fetched.<br>
+     If you want to fetch all columns, set this to nil.<br>
+  </ul>
+  <p>
+  
+  <b>Examples:</b><br>
+  <pre>
+   query.sql('select * from sysservers')
+   raise "ERROR: select ..." unless (query.cmd_done? )</pre><p>
+  </pre>
+
+<dt><b>sql ( <var>command</var>, <var>nbind</var>=nil ) 
+     {|<var>cmd</var>,<var>st</var>,<var>col</var>,<var>row</var>| }</b><br>
+<dd>
+  Runs the SQL commands.<br>
+  Whenever one row is retrieved, the block is called.<p>
+    <dl>
+     <dt> <b>The block parameters</b><br>
+     <dd>
+       <table border=1>
+       <tr valign=top><td><var>cmd</var></td><td>SybCommand object</td>
+       <tr valign=top><td><var>st</var></td>
+                      <td>SybConstant::CS_SUCCEED or<br>
+                               SybConstant::CS_ROW_FAIL</td>
+       <tr valign=top><td><var>col</var></td>
+                      <td>The array of column names</td>
+       <tr valign=top><td><var>row</var></td>
+                      <td>The array of row datas</td>
+       </table><p>
+     <dt><b>The block's return value</b><br>
+     <dd>
+     <table border=1>
+       <tr valign=top><td>true</td>
+            <td>The <var>row's</var> value is added to the result<br>
+	    that the <a href="#results">results</a> method returns.</td>
+       <tr valign=top><td>nil</td>
+            <td>The <var>row's</var> value is not added to the result<br>
+	        that the <a href="#results">results</a> method returns.<br>
+                (When large number of rows are retrieved, <br>
+                 this is effective in order to save memory)</td>
+       <tr valign=top><td>false</td><td> Stop to iterates</td>
+       </table>
+     </dl><p>
+
+  <b>Examples:</b><br>
+  <pre>
+     query.sql("select title_id, notes from titles"){
+       |cm,s,c,r|
+       note = r[1]
+       # get first sentence
+       if( note =~ /^([^\.]*)\./io ) then
+	 print r[0],"\t",$1,"\n"
+       end
+       nil		# Not use a SybResult object
+     }
+  </pre>
+
+<dt><b>set_strip ( <var>on</var> )</b><br>
+<dd>
+  If <b><var>on</var></b> is true, then <b>sql</b> method will strip
+the trailing white spaces from all of the String values in the
+results.<p> 
+
+<dt><b>sql_norow ( <var>command</var> )</b><br>
+  
+<dd> This method is used to send SQL commands to the server that do
+not return rows, such as insert, use db, and update statement.<p>
+   <dl>
+   <dt><b>Returns:</b><br>
+     <dd>true if it was completed successfully.<p>
+
+   <dt><b>Examples:</b><br>
+      <dd><pre>raise "ERROR: use DB" unless query.sql_norow('use master')</pre>
+   </dl>
+   <p>
+<dt><b>timeout?</b><br>
+<dd>  Returns TRUE , if the driver has exceeded the timeout period while
+waiting for a response from the Server<br>
+  (This method depends upon implementation of Client-Message-Callback.)<p>
+
+</dl>
+
+<h3><a name="resmethod">Methods for processing results</a></h3>
+<dl>
+
+<dt><b><a name="results">results</a></b><br>
+<dd>
+   Returns the result as array of 
+   <a href="SybResult.html">SybResult</a> objects, which is retrieved
+by <b>sql</b> or <b>sql_norow</b> or <b>sql_iodesc</b> method.<p>
+
+  The following table lists correspondence with SyBase datatype and
+Ruby datatype that this module handle.<br>
+   <table border=1>
+   <tr><th>SyBase datatype</th><th>Ruby datatype</th>
+   <tr><td> TINYINT </td><td>Integer</td>
+   <tr><td> SMALLINT </td><td>Integer</td>
+   <tr><td> INT </td><td>Integer</td>
+   <tr><td> REAL </td><td>Float</td>
+   <tr><td> FLOAT </td><td>Float</td>
+   <tr><td> Others </td><td>String</td>
+   </table>
+   <p>
+
+<dt><b>each_results( <var>type</var>=SybConstant::CS_ROW_RESULT )
+ { | <var>r</var> | .. }</b><br>
+<dd>
+  Iterates over each <a href="SybResult.html">SybResult</a> object in
+Result Sets which type of result is equal to <b><var>type</var></b>.
+<p>
+
+<dt><b>nth_results ( nth=0, type = SybConstant::CS_ROW_RESULT )</b>
+<dd>
+  Returns the <var>nth</var> <a href="SybResult.html">SybResult</a>
+object in Result Sets which type of result is equal to
+<b><var>type</var></b>.<p>
+
+  The parameter <b><var>type</var></b> indicates the type of result. the
+following table lists the possible value of <b><var>type</var></b>.
+  <table border=1>
+    <tr><td>CS_CMD_SUCCEED
+        <td>The success of a command that returns no data
+    <tr><td>CS_CMD_DONE
+        <td>The results of a command have been completely processed.
+    <tr><td>CS_CMD_FAIL
+        <td>The server encountered an error while executing a command
+    <tr><td>CS_ROW_RESULT
+        <td>Regular row results
+    <tr><td>CS_PARAM_RESULT
+        <td>Parameter results
+    <tr><td>CS_STATUS_RESULT
+        <td>Stored procedure return status results.
+    <tr><td>CS_COMPUTE_RESULT
+        <td> Compute row results
+  </table><br>
+  These CS_XXX_XXXXX constants is defined in
+ <a href="SybConstant.html">SybConstant</a> module.<p>
+
+ <dl>
+ <dt><b>Examples</b>
+ <dd>
+  <pre>
+### Prints out two RowResults. #####
+query.sql("select * from table1\n select * from table2")
+raise "Failed" unless (query.cmd_done? )
+raise "No results in table1" unless (res = query.nth_results(0, CS_ROW_RESULT) )
+res.rows.each {
+  |r| print "  #{r.join('|')}\n"
+}
+raise "No results in table2" unless (res = query.nth_results(1, CS_ROW_RESULT) )
+res.rows.each {
+   |r| print "  #{r.join('|')}\n"
+}</pre>
+  </dl>  
+ <p>
+
+<dt><b>top_row_result</b><br>
+<dd>
+  Returns the first regular row result in Result Sets.<p>
+<pre>This method is equivalent to 
+      <code>nth_results(0, SybConstant::CS_ROW_RESULT)</code>
+  </pre><p>
+
+<dt><b>top_param_result</b><br>
+<dd>
+  Returns the first parameter result in Result Sets.<p>
+<pre>This method is equivalent to 
+   <code>nth_results(0, SybConstant::CS_PARAM_RESULT)</code>
+  </pre><p>
+
+<dt><b>top_status_result</b><br>
+<dd>
+  Returns the first return-status as a Integer object.<p>
+
+<dt><b>cmd_done?</b><br>
+<dd>
+  Returns TRUE, if the results of a command have been completely
+processed.<p>
+
+<dt><b>cmd_succeed?</b><br>
+<dd>
+  Returns TRUE, if the command returning no rows completely
+successfully. <p>
+
+<dt><b>cmd_fail?</b><br>
+<dd>
+  Returns TRUE, if the server encountered an error while executing a
+command.<p>
+
+</dl>
+
+<h3><a name="srvopt">Methods for SQL server options</a></h3>
+<dl>
+
+<dt><b>set_rowcount ( <var>maxrows</var> )</b><br>
+<dd>
+  Sets the limit for the maximum number of rows.<p>
+  <b>Parameters:</b><br>
+  <menu>
+    <b><var>maxrows</var></b> - The max rows limit, maxrows=0 means unlimited.
+  </menu><br>
+ (This method corresponds to <b>"set rowcount <var>maxrows</var>"</b>
+of Transact-SQL.)<p>
+
+<dt><b>set_forceplan( val )</b><br>
+<dd>
+  This method corresponds to <b>"set forceplan <var>val</var>"</b> of
+Transact-SQL<p>
+
+</dl>
+
+<p>
+<h3><a name="image">Methods for Text and Image datatype</a></h3>
+<dl>
+
+<dt><b><a name="image_transize">image_transize</a> (<var>size</var>=nil )</b><br>
+<dd>
+  If <b><var>size</var></b> was specified in param, This method sets data
+transfer size for the <b>sql_getimage</b> method and the
+<b>send_imagefile</b> method.<br>
+
+  If <b><var>size</var></b> was omitted, This method returns the current data
+transfer size.<p>
+
+  In initial condition, Data transfer size is set to 1024 bytes.<p>
+  
+<dt><b>image_log( <var>lg</var> )</b><br>
+<dd>
+  This method tells the server whether or not to log the update
+operation of the <b>send_imagefile</b> method and the
+<b>send_image</b> method.<p>
+  if the <b><var>lg</var></b> parameter is FALSE, then the server does not
+update log<br>
+  (<b>"select into/bulkcopy option"</b> is necessary for the database
+  beforehand.)<p>
+
+<dt><b>sql_getimage( <var>sqlstr</var>, <var>id</var> ) 
+  { | <var>rowid</var>, <var>row</var>, <var>clmid</var>,
+  <var>clm</var>, <var>data</var> |  }</b><br>
+<dd>
+  Retrieve Image or Text data.<br>
+  Buffer size for transfer is specified by the 
+<a href="#image_transize">image_transize</a> method.<p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>sqlstr</var></b><br>
+   SQL statement for fetching Image/Text column.<br>
+   As for the order of columns, Image/Text column should come last.<p>
+
+  <li><b><var>id</var></b><br>
+    The column number of the first Image/Text item (starting at 1)<p>
+
+  <li><b>Block</b><br>
+  Iterates over each chunk of data .<p>
+    <dl>
+     <dt>The block parameters
+     <dd>
+       <table border=1>
+       <tr><td valign=top><b><var>rowid</var></b></td>
+            <td>index of row data(start at 0)</td>
+       <tr><td valign=top><b><var>row</var></b></td>
+              <td>The array of row datas</td>
+       <tr><td valign=top><b><var>clmid</var></b></td>
+            <td>The column number (start at 0)</td>
+       <tr><td valign=top><b><var>clm</var></b></td>
+             <td>The array of column names</td>
+       <tr><td valign=top><b><var>data</var></b></td>
+          <td><b>String</b> : A chunk of Image/Text data<br>
+              <b>nil</b> : It retrieved the last chunk of data<br>
+              <b>false</b> : Failed </td>
+       </table>
+     </dl>
+  </ul><p>
+
+  If error has occurred, then it raise a RuntimeError exception.<p>
+
+  <b>Examples</b><br>
+   Retrieves image data from the <b>au_pix</b> table<br>
+  <pre>
+  query=SybSQL.new( {'S'=>'SYBASE', 'U'=>'sa', 'P'=>'XXXXXX'} )
+  raise "ERROR: use pubs2" unless( query.sql_norow("use pubs2") )
+
+  # Enlarges CS_OPT_TEXTSIZE 
+  #          (The maximum data size which the server should return)
+  unless( query.connection.setopt(CS_OPT_TEXTSIZE, 1024 * 1024)) then
+    $stderr.print("ERROR: setopt(CS_OPT_TEXTSIZE)\n");
+  end
+  
+  file = File.open("486-29-1786.ras","w")   # open the file
+  query.image_transize(8192)   # set buffer size for transfer
+  imgsize = 0
+  sql = "select au_id ,pic from au_pix where au_id = '486-29-1786'"
+  query.sql_getimage(sql, 2){
+    |rid,r,cid,clm, data|
+    if( data.kind_of?(String) )then
+      file.write(data)
+      imgsize += data.length
+    elsif (data.nil?) then
+      print "End of data\n"
+      file.close
+    end
+  }
+  print "Size=#{imgsize}\n"
+  </pre><p>
+
+<dt><b>sql_iodesc( sqlstr, id )</b><p>
+<dd>
+  Gets the current <a href="SybIODesc.html">SybIODesc</a> object (I/O
+descriptor).<p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b>sqlstr</b><br>
+   SQL statement for fetching the I/O descriptor item.<br>
+   As for the order of columns, I/O descriptor column (usually
+   Image/Text column) should come last.<p>
+
+  <li><b>id</b><br>
+    The column number of the first I/O descriptor item , usually
+   Image/Text column. (starting at 1)<p>
+
+  </ul>
+
+  <b>Returns:</b><br>
+  <ul type=disc>
+   Returns a SybIODesc object.<br>
+   In case of error; raise RuntimeError exception.<p>
+  </ul>
+
+<dt><b>send_image ( <var>iodesc</var>, <var>imagesize</var> ) 
+    { | <var>cmd</var> |  }</b><p>
+<dd>
+  Sends Image or Text data<p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>iodesc</var></b><br>
+    Specify <a href="SybIODesc.html">SybIODesc</a> object<br>
+    This object will be destructively updated.<p>
+
+  <li><b><var>imagesize</var></b><br>
+   The whole size , in bytes, of Image/Text data to send.<br>
+   If zero is specified, the column is updated to NULL.<p>
+
+  </ul>
+
+  <b>Block</b><br>
+  <menu>
+  When setup to transmit data was completed, this method calls a block
+repeatedly. In this block, you must provide the server with a chunk of
+Image/Text data.<p>
+  <dl>
+  <dt><b>The block parameters</b><br>
+  <dd>
+     <var>cmd</var> --- <a href="SybCommand.html">SybCommand</a> object<p>
+
+  <dt><b>Return value of the block</b><br>
+  <dd>
+    <dl>
+    <dt> String object: <br>
+      <dd>
+        A chunk of Image/Text data.<br>
+        It's length &lt;= <a href="#image_transize">image_transize</a> .<br>
+    <dt> nil : <br>
+       <dd>
+        Indicates end of transfer.
+    </dl>
+  </dl>
+ </menu>
+
+ <p>
+ If error has occurred, then it raise a <b>RuntimeError</b> exception.<p>
+
+<dt><b>send_imagefile ( <var>iodesc</var>, <var>filename</var> )</b><p>
+<dd>
+  Sends contents of the file to a server as Image or Text data<br>
+  Buffer size for transfer is specified by the 
+  <a href="#image_transize">image_transize</a> method.<p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+  <li><b><var>iodesc</var></b><br>
+    Specify <a href="SybIODesc.html">SybIODesc</a> object<br>
+    This object will be destructively updated.<p>
+  <li><b><var>filename</var></b><br>
+    File name<p>
+  </ul>
+  <br>
+  If error has occurred, it raise a <b>RuntimeError</b> exception.<p>
+
+  <b>Examples</b><br>
+   Inserts new Image data row to the <b>au_pix</b> table in the pubs2
+database.<p>
+  <pre>
+  query=SybSQL.new( {'S'=>'SYBASE', 'U'=>'sa', 'P'=>'XXXXXX'} )
+
+  # Enable bulkcopy into the database
+  raise "ERROR: use master" unless( query.sql_norow("use master") )
+  query.sql("exec sp_dboption pubs2,'select into/bulkcopy',true")
+  raise "ERROR: sp_dboption" unless (query.cmd_done? )
+  # Check the return status.
+  raise "ERROR: sp_dboption" if( query.top_status_result != 0 )
+  # checkpoint
+  raise "ERROR: use pubs2" unless( query.sql_norow("use pubs2") )
+  raise "ERROR: checkpoint" unless( query.sql_norow("checkpoint") )
+
+  # Insert new row
+  sql = "insert au_pix (au_id,format_type ) values ('my-image-1', 'JPG')"
+  raise "ERROR: insert" unless( query.sql_norow(sql) )
+
+  # Update Image column to NULL.  --  (required)
+  sql = 'update au_pix set pic=NULL where au_id = "my-image-1"'
+  raise "ERROR update" unless( query.sql_norow(sql) )
+
+  query.image_transize( 2048 )	# set buffer size for transfer
+  query.image_log( false )	# with no log
+
+  # Retrieves SybIODesc 
+  sql = 'select au_id,pic from au_pix where au_id = "my-image-1"'
+  query.sql_iodesc(sql,2)
+  iodesc = query.top_row_result.nthrow(0,1)
+  raise "Cannot fetch IODESC" unless( iodesc.kind_of?(SybIODesc) )
+
+  # Send contents of my-image-1.jpg file to the server.
+  query.send_imagefile(iodesc, "my-image-1.jpg")
+  print "Success\n"
+</pre>
+
+</dl>
+
+<h3><a name="cursor">Methods for Client-Library cursor</a></h3>
+<dl>
+<dt><b>do_cursor ( <var>csrname</var>, <var>langcmd</var>,
+<var>rowcount</var>=nil, <var>curopt</var>=nil, <var>nbind</var>=nil)
+  {| <var>cmd</var>, <var>st</var>, <var>col</var>, <var>row</var> | }</b><br>
+<dd>
+  Declares Client-Library cursor and executes it.<br>
+  Note:
+  <ul type=disc>
+    <li>If the do_cursor method is finished, then the cursor is
+    deallocated automatically<br>
+    <li> About the Language cursor, please process it with a 
+               <a href="#sql">sql</a> method.<br>
+  </ul><p>
+
+  <b>Parameters:</b><br>
+  <ul type=disc>
+    <li><b> <var>csrname</var> </b><br>
+      The cursor name to declare.<p>
+    <li><b> <var>langcmd</var></b><br>
+      The SQL text that represents the body of the cursor.<br>
+      (See also: <a href="SybCommand.html#cursor_new">SybCommand#cursor_new</a>)<p>
+    <li><b> <var>rowcount</var></b><br>
+      The number of rows to be returned with a single fetch request.<br>
+      (See also: <a href="SybCommand.html#cursor_rows">SybCommand#cursor_rows</a>)<p>
+    <li><b> <var>curopt</var></b><br>
+       The option to declare the cursor.<br>
+       (See also: <a href="SybCommand.html#cursor_new">SybCommand#cursor_new</a>)<p>
+    <li><b> <var>nbind</var></b><br>
+       The maximum column number to be fetched.<br>
+       If you want to fetch all columns, set this to nil.<p>
+   </ul>
+
+  Whenever one row is retrieved, the block is called.<br>
+  In the block, nested UPDATE  and DELETE commands can be used.<p>
+    <dl>
+     <dt> <b>The block parameters</b><br>
+     <dd>
+       <table border=1>
+       <tr valign=top><td><var>cmd</var></td><td>SybCommand object</td>
+       <tr valign=top><td><var>st</var></td>
+                      <td>SybConstant::CS_SUCCEED or<br>
+                               SybConstant::CS_ROW_FAIL</td>
+       <tr valign=top><td><var>col</var></td>
+                      <td>The array of column names</td>
+       <tr valign=top><td><var>row</var></td>
+                      <td>The array of row datas</td>
+       </table><p>
+     <dt><b>The block's return value</b><br>
+     <dd>
+     <table border=1>
+       <tr valign=top><td>true</td>
+            <td>The <var>row's</var> value is added to the result<br>
+	    that the <a href="#results">results</a> method returns.</td>
+       <tr valign=top><td>nil</td>
+            <td>The <var>row's</var> value is not added to the result<br>
+	        that the <a href="#results">results</a> method returns.<br>
+                (When large number of rows are retrieved, <br>
+                 this is effective in order to save memory)</td>
+       <tr valign=top><td>false</td><td> Stop to iterates</td>
+       </table>
+     </dl>
+  <p>
+  <b>Examples:</b><br>
+    See,  sample/cursor_disp.rb and  sample/cursor_update.rb 
+    <p>
+</dl>
+
+</body>
+</html>
+

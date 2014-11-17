@@ -1,0 +1,91 @@
+<html>
+<head>
+<TITLE>SybSQLContext class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybSQLContext</h1>
+
+  <a href="SybSQL.html">SybSQL</a>クラスの、デフォルトのエラーコール
+バックメソッドを実装しています。<p>
+
+<h3>スーパークラス</h3>
+<menu>
+<li><a href="SybContext.html">SybContext</a><br>
+</menu>
+
+<h3>使用モジュール</h3>
+<menu>
+<li><a href="SybConstant.html">SybConstant</a><br>
+</menu><p>
+
+<h3>メソッド</h3>
+<dl>
+<dt><b>srvmsgCB( con,msghash)</b><br>
+<dd>
+  <a href="SybSQL.html">SybSQL</a>クラスで、デフォルトで定義される
+サーバメッセージコールバック関数です。<p>
+  SybSQLクラスを使用して、サーバメッセージに対応する振るまいをカスタマ
+イズしたい場合は、このメソッドを再定義しなくてはなりません。<p>
+  <b>con</b>は、メッセージを引き起こした<a href="SybConnection.html">
+  SybConnection</a>オブジェクトです。<p>
+  <b>msghash</b>には、メッセージの内容が格納されています。キーに対するそ
+  の値は、SyBaseクライアントライブラリーのCS_SERVERMSG構造体メンバ変
+  数として与えられます。<br>
+  <table border=1>
+  <tr><th>キー</th><th>値 (CS_SERVERMSGメンバ変数) </th>
+  <tr><td>'msgnumber'</td><td>msgnumber(サーバメッセージ番号)</td>
+  <tr><td>'severity'</td><td>severity(メッセージの重大性)</td>
+  <tr><td>'state'</td><td>state</td>
+  <tr><td>'line'</td><td>line(原因となった行)</td>
+  <tr><td>'status'</td><td>status</td>
+  <tr><td>'srvname'</td><td>srvname(サーバ名)</td>
+  <tr><td>'text'</td><td>text(サーバメッセージ文字列)</td>
+  <tr><td>'proc'</td><td>proc(原因となったストアドプロシジャ名)</td>
+  <tr><td>'sqlstate'</td><td>sqlstate</td>
+  </table>
+  なを、拡張エラーメッセージはサポートしていません。<br>
+  詳細は、SyBase Open Client Library マニュアルを見て下さい。<p>
+
+<dt><b>cltmsgCB( con,msghash)</b><br>
+<dd>
+  <a href="SybSQL.html">SybSQL</a>クラスで、デフォルトで定義される
+クライアントメッセージコールバック関数です。<p>
+  SybSQLクラスを使用して、クライアントメッセージに対応する振るまいをカスタマ
+イズしたい場合は、このメソッドを再定義しなくてはなりません。<p>
+  <b>con</b>は、メッセージを引き起こした<a href="SybConnection.html">
+  SybConnection</a>オブジェクトです。<p>
+  <b>msghash</b>には、メッセージの内容が格納されています。キーに対するそ
+  の値は、SyBaseクライアントライブラリーのCS_CLIENTMSG構造体メンバ変
+  数として与えられます。<br>
+  <table border=1>
+  <tr><th>キー</th><th>値 (CS_CLIENTMSGメンバ変数) </th>
+  <tr><td>'msgstring'</td><td>msgstring (クライアントメッセージ文字列)</td>
+  <tr><td>'osstring'</td><td>osstring( OSメッセージ文字列)</td>
+  <tr><td>'sqlstate'</td><td>sqlstate</td>
+  <tr><td>'status'</td><td>取り得る値は、'first','last','both' </td>
+  <tr><td>'msgnumber'</td><td>msgnumber</td>
+  <tr><td>'layer'</td><td>CS_LAYER(msg->msgnumber)</td>
+  <tr><td>'origin'</td><td>CS_ORIGIN(msg->msgnumber)</td>
+  <tr><td>'number'</td><td>CS_NUMBER(msg->msgnumber)</td>
+  <tr><td>'severity'</td><td>
+  nil -- 単なる情報メッセージ（エラーではない）<br>
+  'CONFIG_FAIL' --  SyBase構成エラー <br>
+  'RETRY_FAIL' -- リトライ可能なエラー（たぶんタイムアウト）<br>
+  'API_FAIL' -- たぶん、文法のミス<br>
+  'RESOIRCE_FAIL' -- たぶん、資源不足<br>
+  'COMM_FAIL' -- 通信エラー<br>
+  'INTERNAL_FAIL' -- 内部エラー<br>
+  'FATAL' -- 重大なエラー<br>
+  'unknown' -- この拡張ライブラリーが理解しないエラー<br>
+  </td>
+  </table>
+  詳細は、SyBase Open Client Library マニュアルを見て下さい。<p>
+
+</dl>
+</body>
+</html>

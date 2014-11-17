@@ -1,0 +1,147 @@
+<html>
+<head>
+<TITLE>SybResult class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybResult</h1>
+
+<ul> SyBase の SQLコマンド発行結果を格納するクラスです。</ul>
+
+<h3>使用モジュール</h3>
+<menu>
+<li><a href="SybConstant.html">SybConstant</a><br>
+</menu><p>
+
+<h3>クラスメソッド</h3>
+<dl>
+<dt><b>new(restype, rowset=nil)</b><br>
+<dd>
+  結果データオブジェクト、SybResultを新しく作成します。
+  <dl>
+  <dt>restype 
+  <dd>
+     結果のタイプを表す<a href="SybConstant.html">SybConstant</a> 定数<p>
+    restype に指定可能な<a href="SybConstant.html">SybConstant</a>定数は、
+    <menu>
+    <li><b>CS_CMD_SUCCEED</b> (ローを返さないコマンドの正常終了通知)
+    <li><b>CS_CMD_DONE</b> (コマンドの正常処理を通知)
+    <li><b>CS_CMD_FAIL</b>(サーバエラーを通知)
+    <li><b>CS_ROW_RESULT</b>(通常ロー結果)
+    <li><b>CS_PARAM_RESULT</b>(リターンパラメータ結果)
+    <li><b>CS_STATUS_RESULT</b>(ストアドプロシジャー リターンステータス)
+    <li><b>CS_COMPUTE_RESULT</b>(compute ロー結果)
+    </menu>
+  のいずれかです。<p>
+  <dt>rowset
+  <dd>
+     結果ローを表す 長さ２の配列
+     <menu>
+     <li>rowset[0] -- カラムデータ配列
+     <li>rowset[1] -- ローデータ配列の配列
+     </menu>
+  </dl>
+</dl>
+
+<h3>メソッド</h3>
+<dl>
+<dt><b>restype</b><br>
+<dd>
+  結果タイプ(CS_ROW_RESULT,CS_CMD_FAILなど)を返します。<p>
+
+<dt><b>rows</b><br>
+<dd>
+  ロー結果を「配列の配列」として返します。<p>
+  結果タイプが、
+  <ul>
+  CS_ROW_RESULT,CS_PARAM_RESULT,<br>CS_STATUS_RESULT,CS_COMPUTE_RESULT
+  </ul>
+  以外の場合は、nilを返します。<p>
+
+<dt><b>columns</b><br>
+<dd>
+  ロー結果のカラム情報を「配列」として返します。<p>
+  結果タイプが、
+  <ul>
+  CS_ROW_RESULT,CS_PARAM_RESULT
+  </ul>
+  以外の場合は、nilを返します。<p>
+
+<dt><b>nthrow( nth, clm=nil )</b><br>
+<dd>
+  <dl>
+  <dt>nth=<var>n</var>, clm=nil の場合(<var>n</var>は整数)
+  <dd>
+     <var>n</var> 番目の結果ロー配列を返します。
+  <dt>nth=<var>n</var>, clm=<var>c</var> の場合(<var>n,c</var>は整数)
+  <dd>
+     <var>n</var> 番目の結果ローの、<var>c</var>カラム目のデータを返し
+     ます。
+  <dt>nth=<var>n</var>, clm='<var>str</var>' の場合(<var>str</var>は文字列)
+  <dd>
+     <var>n</var> 番目の結果ローの、<var>str</var>カラムのデータを返し
+     ます。
+  </dl>  
+  例<pre>
+  ## sp_who を発行 ##
+  query.sql("sp_who")
+
+  ##  最初のロー結果を得る ##
+  res=query.top_row_result  /* res は SybResult オブジェクト */
+
+  ## カラム情報 ##
+  print res.columns.join(','),"\n"
+   -->
+    ["spid", "status", "loginame", "hostname", "blk", "dbname", "cmd"]
+
+  ## ローデータのプリント ##
+  res.rows.each{|r| print r.join(','), "\n"}
+   -->
+    1,running     ,sa          ,          ,0    ,master    ,SELECT          
+    2,sleeping    ,,          ,0    ,master    ,NETWORK HANDLER 
+    3,sleeping    ,,          ,0    ,master    ,DEADLOCK TUNE   
+    4,sleeping    ,,          ,0    ,master    ,MIRROR HANDLER  
+    5,sleeping    ,,          ,0    ,master    ,HOUSEKEEPER     
+    6,sleeping    ,,          ,0    ,master    ,CHECKPOINT SLEEP
+
+  ## カラム番号による、ローデータの要素アクセス ##
+  print res.nthrow(0,1),"\n"
+   -->
+    "running     "
+
+  ## カラム名による、ローデータの要素アクセス ##
+  print res.nthrow(5,"cmd"),"\n"
+   -->
+    "CHECKPOINT SLEEP"
+</pre>
+
+<dt><b>tran_state</b><br>
+<dd>
+  現在のトランザクション状態を返します。<p>
+  返り値は以下のいずれかです。<br>
+  <ul>
+  <li> SybConstant::CS_TRAN_IN_PROGRESS<br>
+    トランザクションが進行中です。
+  <li> SybConstant::CS_TRAN_COMPLETED<br>
+    トランザクションが正常に終了しました。
+  <li> SybConstant::CS_TRAN_FAIL<br>
+    トランザクションが異常終了しました。
+  <li> SybConstant::CS_TRAN_STMT_FAIL<br>
+    トランザクションが異常終了しました（最後に実行した文）。
+  <li> SybConstant::CS_TRAN_UNDEFINED<br>
+    トランザクションは定義されていません。
+  </ul><p>
+
+<dt><b>row_count</b><br>
+<dd>
+  影響を及ぼしたロー数を返します<p>
+
+<dl>
+
+
+</body>
+</html>

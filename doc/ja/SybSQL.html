@@ -1,0 +1,526 @@
+<html>
+<head>
+<TITLE>SybSQL class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybSQL</h1>
+
+<ul> 「SQL サーバへの接続」、「SQLコマンドの発行」、及び「結果データの検
+索」など、ruby と SyBaseサーバとのインターフェース全般を実装したクラスです。</ul>
+
+<h3>SybSQL目次</h3>
+<ul>
+<li><a href="#clsmethod">クラスメソッド</a><br>
+<li><a href="#conmethod">メソッド（接続関連）</a><br>
+<li><a href="#cmdmethod">メソッド（コマンド発行）</a><br>
+<li><a href="#resmethod">メソッド（結果データ検索）</a><br>
+<li><a href="#srvopt">メソッド（サーバオプション）</a><br>
+<li><a href="#image">メソッド（Image/Text データへのアクセス）</a><br>
+<li><a href="#cursor">メソッド（クライアントライブラリー  カーソル）</a><p>
+</ul>
+
+<h3>使用モジュール</h3>
+<menu>
+<li><a href="SybConstant.html">SybConstant</a><br>
+</menu><p>
+
+<a name="clsmethod"><h3>クラスメソッド</h3></a>
+<dl>
+<dt><a name="new"><b>new( hash, context_class=<a href="SybSQLContext.html">SybSQLContext</a> )</b></a><br>
+<dd>
+   <b>hash</b> で与えた情報により、SyBaseクライアントライブラリーを初期化し、
+SQLサーバとの接続を確立します。<p>
+   <b>hash</b> は、<br><pre>
+      {'S'=&gt;srvname, 'U'=&gt;user, 'P'=&gt;psw, 
+       'lang'=&gt;language, 'timeout'=&gt;time-out, 'async'=&gt;boolean,
+       'login-timeout'=&gt;login-timeout,
+       'appname'=&gt;applicatin-name 'hostname'=&gt;host-name }</pre>
+の形式を取り、それぞれのキーと値の組合せは以下のようになります。<p>
+  <ul type=disc>
+  <li>'S' => 接続するSQLサーバ名 （必須）
+  <li>'U' => SQLサーバ名へのログインユーザ名（必須）
+  <li>'P' => SQLサーバ名へのログインパスワード （省略時は ''）
+  <li>'lang' => $SYBASE/locales/locales.datに登録されてあるロケール名
+  <li>'timeout' => サーバ応答のタイムアウト秒（省略時は０ ； タイムアウトしない ）
+  <li>'login-timeout' => ログインする時のタイムアウト秒
+  <li>'appname' => アプリケーション名
+  <li>'hostname' => ホスト名
+  <li>'async' => マルチスレッドアプリケーションの場合、true に設定
+          （省略時はfalse）<br>
+          参考 <a href="SybContext.html#create">SybContext.create</a>
+  </ul><p>
+  <b>context_class</b> には、<a href="SybSQLContext.html">SybSQLContext</a>
+  の サブクラスを指定してください。<br>
+  デフォルト（<a href="SybSQLContext.html">SybSQLContext</a>）で定義し
+  ているメッセージコールバックメソッドを再定義したい時に使います。<p>
+
+  <dl>
+  <dt>例： SYBSRV01 サーバに sa ユーザで接続し、ロケールにはja_JP.ujisを使う場合。
+  <dd>
+   <pre>query = SybSQL.new({'S'=>'SYBSRV01','U'=>'sa','P'=>'XXXXXX',
+                            'lang'=>'ja_JP.ujis'} )</pre><br>
+  <dt>例： サーバメッセージコールバックを再定義
+  <dd>
+   <pre>
+class MyContext < SybSQLContext 
+  def srvmsgCB( con,msghash)
+    print "My server-callback\n"
+  end
+end
+query = SybSQL.new({'S'=>'SYBSRV01','U'=>'sa','P'=>'XXXXXX'}, MyContext)</pre><br>
+  </dl>
+</dl>
+
+<a name="conmethod"><h3>メソッド（接続関連）</h3></a>
+<dl>
+<dt><a name="context"><b>context</b></a><br>
+<dd>
+  <a href="SybContext.html">SybContext</a>オブジェクトを返します<p>
+
+<dt><a name="connection"><b>connection</b></a><br>
+<dd>
+  <a href="SybConnection.html">SybConnection</a>オブジェクトを返します<p>
+
+<dt><a name="close"><b>close(force=false)</b></a><br>
+<dd>
+  サーバとの接続を切り、SyBaseクライアントライブラリーを終了させます。<br>
+  <b>force</b>に true を設定すると、サーバにログアウトメッセージを送信
+せずに接続を終了します。<p>
+
+<dt><a name="connection_status"><b>connection_status</b></a><br>
+<dd>
+  接続ステータスを得ます。<br>
+  結果は、SybConstant::CS_CONSTAT_DEAD, SybConstant::CS_CONSTAT_CONNECTED  
+の論理和です。<p>
+
+<dt><a name="connection_dead"><b>connection_dead?</b></a><br>
+<dd>
+  接続が死んでいれば TRUE が返ります<p>
+
+</dl>
+<h3><a name="cmdmethod">メソッド（コマンド発行）</a></h3>
+<dl>
+
+<dt><b>sql ( command, nbind=nil )</b><br>
+<dd>
+  SQL を発行します。<br>
+  検索したデータは、後でresult メソッドにより取り出すことが出来ます。<p>
+  <b>command</b>には１トランザクションで実行できる複数のＳＱＬコマン
+  ドを指定することも可能です。<p>
+  例<pre>
+   query.sql('select * from sysservers')
+   raise "ERROR: SELECT" unless (query.cmd_done? )</pre><p>
+
+  <b>nbind</b>はバインドする最大カラム番号を指定します。通常は全てバイ
+  ンドするのでnilを指定して下さい。<p>
+
+<dt><b>sql ( command, nbind=nil ) {|cmd,st,col,row| }</b><br>
+<dd>
+  SQL を発行します。<br>
+  1 ローを検索する度に、ブロックが呼び出されます。<p>
+    <dl>
+     <dt>ブロックの引数
+     <dd>
+       <table border=1>
+       <tr><td valign=top>cmd</td><td>SybCommand オブジェクト</td>
+       <tr><td valign=top>st</td><td>SybConstant::CS_SUCCEED または SybConstant::CS_ROW_FAIL</td>
+       <tr><td valign=top>col</td><td>カラム名配列</td>
+       <tr><td valign=top>row</td><td>ローデータの配列</td>
+       </table>
+     <dt>リターン値<br>
+     <dd>
+     <table border=1>
+       <tr><td valign=top>true</td><td>rowをresultメソッドが返す結果に加える</td>
+       <tr><td valign=top>nil</td><td>rowをresultメソッドが返す結果に加えない。<br>
+			(巨大ローを検索する時に、メモリを節約するのに使える)</td>
+       <tr><td valign=top>false</td><td> fetch をキャンセルする。</td>
+       </table>
+     </dl>
+  例<pre>
+     query.sql("select title_id, notes from titles"){
+       |cm,s,c,r|
+       note = r[1]
+       # get first sentence
+       if( note =~ /^([^\.]*)\./io ) then
+	 print r[0],"\t",$1,"\n"
+       end
+       nil		# Not use SybResult
+     }
+  </pre>
+
+<dt><b>set_strip(on)</b><br>
+<dd>
+  sql メソッドで検索するデータの、後続ブランクを切り詰めるかどうかを指定します。<br>
+  on = true なら切り詰められます。<p>
+
+<dt><b>sql_norow ( command )</b><br>
+<dd>insert 文のように、結果ローが発生しない SQL を発行します。<p>
+   成功すると <b>true</b>、失敗すると <b>false</b> を返します。<p>
+  例<pre>
+   raise "ERROR: USE DB" unless query.sql_norow('use master')</pre>
+
+<dt><b>timeout?</b><br>
+<dd>直前に発行した sql, sql_norowメソッドがタイムアウトした場合 true 
+を返します<br>
+  このメソッドは、クライアントメッセージコールバックの実装に依存します。<p>
+
+<dt><b>fetch_rowfail( on )</b><br>
+<dd>
+  sql メソッドにおいて、CS_ROW_FAIL（回復可能エラー） のローを検索結果として返すか
+  どうかを設定します。<P>
+  <b>fetch_rowfail(true)</b> なら、CS_ROW_FAIL のロー結果はデータとし
+  て含まれますが、<b>fetch_rowfail(false)</b>なら、CS_ROW_FAIL のロー結果はnilと
+  して、結果に含まれます。<p>
+  デフォルトの振舞いは、fetch_rowfail(false) です。<p>
+
+</dl>
+
+<h3><a name="resmethod">メソッド（結果データ検索）</a></h3>
+<dl>
+
+<dt><b>results</b><br>
+<dd>
+  以前に発行した<b>sql</b>、<b>sql_norow</b>、<b>sql_getimage</b> 
+  及び、<b>sql_iodesc</b>
+ メソッドの結果データを 
+  <a href="SybResult.html">SybResult</a> オブジェクトの配列として返します。<p>
+  <dl>
+  <dt>注 意
+  <dd>
+     <b>sql</b>メソッドなどでフェッチするSyBaseデータ型とrubyデータ型
+     の対応は以下のようになっています。<br>
+   <table border=1>
+   <tr><th>SyBaseデータ型</th><th>rubyデータ型</th>
+   <tr><td> TINYINT </td><td>Integer</td>
+   <tr><td> SMALLINT </td><td>Integer</td>
+   <tr><td> INT </td><td>Integer</td>
+   <tr><td> REAL </td><td>Float</td>
+   <tr><td> FLOAT </td><td>Float</td>
+   <tr><td> その他 </td><td>String</td>
+   </table>
+  </dl><p>
+
+<dt><b>each_results( type=SybConstant::CS_ROW_RESULT ){|r| ..}</b><br>
+<dd>
+  以前に発行した <b>sql</b>メソッドの結果データのうち、restypeが
+  <b>type</b>と等しい<a href="SybResult.html">SybResult</a> オブジェクトを与える
+  イテレータです。<p>
+
+<dt><b>nth_results(nth=0, type = SybConstant::CS_ROW_RESULT )</b>
+<dd>
+  以前に発行した <b>sql</b>メソッドの結果データのうち、restypeが
+  <b>type</b>と等しい<b>nth</b>番目の<a href="SybResult.html">SybResult</a> 
+オブジェクトを返します。<p>
+  type に指定可能な<a href="SybConstant.html">SybConstant</a>定数は、
+  <menu>
+    <li><b>CS_CMD_SUCCEED</b> (ローを返さないコマンドの正常終了通知)
+    <li><b>CS_CMD_DONE</b> (コマンドの正常処理を通知)
+    <li><b>CS_CMD_FAIL</b>(サーバエラーを通知)
+    <li><b>CS_ROW_RESULT</b>(通常ロー結果)
+    <li><b>CS_PARAM_RESULT</b>(リターンパラメータ結果)
+    <li><b>CS_STATUS_RESULT</b>(ストアドプロシジャー リターンステータス)
+    <li><b>CS_COMPUTE_RESULT</b>(compute ロー結果)
+  </menu>
+  のいずれかです。<p>
+  例： 二つの結果ローをプリントする<pre>
+  query.sql("select * from table1\n select * from table2")
+  raise "failed, SELECT" unless (query.cmd_done? )
+  raise "No result in table1" unless (res = query.nth_results(0, CS_ROW_RESULT) )
+  res.rows.each {
+    |r| print "  #{r.join('|')}\n"
+  }
+  raise "No result table2" unless (res = query.nth_results(1, CS_ROW_RESULT) )
+  res.rows.each {
+    |r| print "  #{r.join('|')}\n"
+  }</pre><P>
+  
+<dt><b>top_row_result</b><br>
+<dd>
+   最初の通常ロー(CS_ROW_RESULT)を持つ、<a href="SybResult.html">SybResult</a> 
+オブジェクトを返します。<br>
+   <code>nth_results(0, SybConstant::CS_ROW_RESULT)</code>と同義<p>
+
+<dt><b>top_param_result</b><br>
+<dd>
+   最初のパラメータロー(CS_PARAM_RESULT)を持つ、
+  <a href="SybResult.html">SybResult</a> オブジェクトを返します。<br>
+   <code>nth_results(0, SybConstant::CS_PARAM_RESULT)</code>と同義<p>
+
+<dt><b>top_status_result</b><br>
+<dd>
+   最初のリターンステータス値（integer)を返す。<p>
+
+<dt><b>cmd_done?</b><br>
+<dd>
+  以前に発行した <b>sql</b> メソッドの結果データにつ
+  いて、それが正しく処理されたかどうか(true/false)を返す。<br>
+ （結果データにCS_CMD_FAIL がなく、かつ、 CS_CMD_DONE があるか？）<p>
+
+<dt><b>cmd_succeed?</b><br>
+<dd>
+  以前に発行したローを返さないコマンド(<b>sql_norow</b> メソッド)
+  が正しく処理されたかどうか(true/false)を返す。<br>
+ （結果データにCS_CMD_FAIL がなく、かつ、 CS_CMD_SUCCEED があるか？）<p>
+
+<dt><b>cmd_fail?</b><br>
+<dd>
+  以前に発行した <b>sql</b>及び<b>sql_norow</b> メソッドの結果データにつ
+  いて、失敗したかどうかを返す。<br>
+ （結果データにCS_CMD_FAIL があるか？）<p>
+
+</dl>
+
+<h3><a name="srvopt">メソッド（サーバオプション）</a></h3>
+<dl>
+
+<dt><b>set_rowcount(maxrows)</b><br>
+<dd>
+  fetchするローの最大数を <b>maxrows</b>に制限します。<br>
+  制限を外す場合は、maxrows = 0 (default)にしてください。<br>
+  （T-SQL の set rowcount コマンドに相当）<p>
+
+<dt><b>set_forceplan( val )</b><br>
+<dd>
+  val が true の場合、set forceplan on を実行します<br>
+  val が false の場合、set forceplan off を実行します<p>
+
+</dl>
+
+<p>
+<h3><a name="image">メソッド（Image/Text データへのアクセス）</a></h3>
+<dl>
+
+<dt><b>image_transize (size=nil)</b><br>
+<dd>
+  sql_getimage及びsend_imagefileメソッドにおける、データ転送サイズを設
+定、または検索（size省略時)する。<p>
+  デフォルト状態では、1024 バイトに設定されています。<p>
+
+<dt><b>image_log( lg)</b><br>
+<dd>
+  send_imagefile及びsend_imageメソッドによって、Image/Text データを送
+  出する場合のトランザクションログを取るか取らないかを設定します。<p>
+  lg = false ならば、トランザクションログは取られません。
+  ただし、あらかじめ select into/bulkcopy オプションがDBに設定する必要
+  があります。<p>
+  デフォルトでは、ログは取られない設定になっています<p>
+
+<dt><b>sql_getimage( sqlstr, id) { |rowid,row, clmid, clm, data|  }</b><br>
+<dd>
+  IMAGE/TEXT データを受信します。<p>
+  データは、image_transize() メソッドで指定したバイトづつ受信されます。  <p>
+
+  <menu>
+  <li><b>sqlstr</b><br>
+   Image/Textカラムをフェッチするための SQL 文   <br>
+   返されるカラムの順番が、Image/Textカラムが最後になるようにしなけれ
+   ばなりません<p>
+  <li><b>id</b><br>
+  最初の Image/Text 項目のカラム番号( start from 1 )<p>
+  <li><b>ブロック</b><br>
+  データを受信した時、繰り返し呼ばれるユーザ定義ブロックを指定します。<p>
+    <dl>
+     <dt>ブロックの引数
+     <dd>
+       <table border=1>
+       <tr><td valign=top>rowid</td><td>フェッチしたデータのロー番号(start from 0)</td>
+       <tr><td valign=top>row</td><td>フェッチしたローデータ配列</td>
+       <tr><td valign=top>clmid</td><td>受信したImage/Textデータのカラム順(start from 0)</td>
+       <tr><td valign=top>clm</td><td>受信したImage/Textデータのカラム名配列</td>
+       <tr><td valign=top>data</td>
+          <td>String : 受信したImage/Textデータ<br>
+              nil : データの最後を受信した<br>
+              false: エラーが起きた </td>
+       </table>
+     </dl>
+  </menu><p>
+
+  エラーが起きると、RuntimeError例外を発行します。<p>
+
+  例  au_pix テーブルからのイメージデータ検索<pre>
+  query=SybSQL.new( {'S'=>'SYBASE', 'U'=>'sa', 'P'=>'XXXXXX'} )
+  raise "ERROR use pubs2" unless( query.sql_norow("use pubs2") )
+
+  # CS_OPT_TEXTSIZE （サーバが返す最大の Image/Text データサイズ）の拡張
+  unless( query.connection.setopt(CS_OPT_TEXTSIZE, 1024 * 1024)) then
+    $stderr.print("NG setopt(CS_OPT_TEXTSIZE)\n");
+  end
+  
+  file = File.open("486-29-1786.ras","w")   # 格納するファイルのオープン
+  query.image_transize(8192)   # 転送サイズ設定
+  imgsize = 0
+  sql = "select au_id ,pic from au_pix where au_id = '486-29-1786'"
+  query.sql_getimage(sql, 2){
+    |rid,r,cid,clm, data|
+    if( data.kind_of?(String) )then
+      file.write(data)
+      imgsize += data.length
+    elsif (data.nil?) then
+      print "End of data\n"
+      file.close
+    end
+  }
+  print "Size=#{imgsize}\n"
+  </pre><p>
+
+<dt><b>sql_iodesc( sqlstr, id)</b><p>
+<dd>
+  <a href="SybIODesc.html">SybIODesc</a>(データ I/O 記述子構造体) を検
+  索します。<p>
+  SybIODesc オブジェクトは、Image/Text データを効率的に送信する場合に
+  必要になってきます。<p>
+
+  <menu>
+  <li><b>sqlstr</b><br>
+   カラムをフェッチするための SQL 文   <br>
+   返されるカラムの順番が、検索したいSybIODesc項目（通常は
+   Image/Textカラム）が最後になるようにしなければなりません<p>
+
+  <li><b>id</b><br>
+  最初の 検索したいSybIODesc項目（通常はImage/Textカラム）のカラム番号
+  ( start from 1 )<p>
+  </menu>
+
+  返却値は 検索した SybIODescオブジェクトです。エラーが起きると、
+RuntimeError例外を発行します。<p>
+
+<dt><b>send_image(iodesc, imagesize) {|cmd|  }</b><p>
+<dd>
+  IMAGE/TEXT データをサーバに送信します。<p>
+
+  <menu>
+  <li><b>iodesc</b><br>
+  SybIODesc オブジェクト( SyBase データ I/O 記述子構造体)を指定します。
+  このオブジェクトは破壊的に変更されます。<p>
+  <li><b>imagesize</b><br>
+   転送する Image/Text データの<u>総</u>バイト数を指定します。０を指定すると、
+   NULLでアップデートされます。<p>
+  <li><b>ブロック</b><br>
+  転送の準備が整った段階で、繰り返し呼ばれるユーザ定義ブロックです。転
+  送するデータブロックを返すように設計します。<p>
+
+  <dl>
+  <dt>ブロックの引数<br>
+  <dd>
+     cmd --- <a href="SybCommand.html">SybCommand</a>オブジェクト<p>
+
+  <dt>ブロックの返り値<br>
+  <dd>
+    実際に転送すべき String データ、または、転送終了を示す nil を返す
+    ように設計してください。<p>
+
+  </dl>
+ </menu>
+
+  エラーが起きると、RuntimeError例外を発行します。<p>
+
+<dt><b>send_imagefile(iodesc, filename)</b><p>
+<dd>
+  ファイルの内容を IMAGE/TEXT データとしてサーバに送信します。<p>
+  転送する時のブロックサイズは、image_transizeメソッドで決定されます。<p>
+
+  <menu>
+  <li><b>iodesc</b><br>
+  SybIODesc オブジェクト( SyBase データ I/O 記述子構造体)を指定します。
+  このオブジェクトは破壊的に変更されます。<p>
+  <li><b>filename</b><br>
+   ファイル名を指定してください。<p>
+  </menu>
+
+  エラーが起きると、RuntimeError例外を発行します。<p>
+
+  例 pubs2のau_pixテーブルに、新しいイメージデータを持つローを追加します。
+  <pre>
+  query=SybSQL.new( {'S'=>'SYBASE', 'U'=>'sa', 'P'=>'XXXXXX'} )
+
+  # bulkcopy オプションを設定 (すでに設定されていれば必要ない）
+  raise "ERROR use master" unless( query.sql_norow("use master") )
+  query.sql("exec sp_dboption pubs2,'select into/bulkcopy',true")
+  raise "ERROR sp_dboption" unless (query.cmd_done? )
+  # sp_dboption の リターンステータスをチェック
+  raise "ERROR sp_dboption" if( query.top_status_result != 0 )
+  # checkpoint
+  raise "ERROR use pubs2" unless( query.sql_norow("use pubs2") )
+  raise "ERROR checkpoint" unless( query.sql_norow("checkpoint") )
+
+  # 新しいローを追加
+  sql = "insert au_pix (au_id,format_type ) values ('my-image-1', 'JPG')"
+  raise "ERROR insert" unless( query.sql_norow(sql) )
+
+  # Image項目をNULL で Update する （必須）
+  sql = 'update au_pix set pic=NULL where au_id = "my-image-1"'
+  raise "ERROR update" unless( query.sql_norow(sql) )
+
+  query.image_transize( 2048 )	# 転送サイズの設定
+  query.image_log( false )	# LOG は切捨て
+
+  # SybIODesc の検索
+  sql = 'select au_id,pic from au_pix where au_id = "my-image-1"'
+  query.sql_iodesc(sql,2)
+  iodesc = query.top_row_result.nthrow(0,1)
+  raise "Cannot fetch IODESC" unless( iodesc.kind_of?(SybIODesc) )
+
+  # ファイル my-image-1.jpg の内容を DB に転送する。
+  query.send_imagefile(iodesc, "my-image-1.jpg")
+  print "Success Insert image file\n"
+</pre>
+
+</dl>
+
+<h3><a name="cursor">メソッド（クライアントライブラリー  カーソル）</a></h3>
+<dl>
+<dt><b>do_cursor ( csrname, langcmd, rowcount=nil, curopt=nil, nbind=nil)
+ {|cmd,st,col,row| }</b><br>
+<dd>
+  クライアントライブラリー カーソルを割り当てて、それを実行します。<br>
+  備考：
+  <ul type=disc>
+  <li>do_cursor メソッドが終了すれば、カーソルは自動で廃棄されます<br>
+  <li>言語カーソルは、sql メソッドで処理してください。<br>
+  </ul><p>
+
+  <b> csrname </b> には、割り当てるカーソルの名前を指定します<p>
+  <b>langcmd</b>にはカーソルボディを表す SQL コマンドストリングを指定します。<br>
+  (参照： <a href="SybCommand.html#cursor_new">SybCommand#cursor_new</a>)<p>
+  <b>rowcount</b> には、１回のフェッチ要求で返されるロー数を指定します。<br>
+  (参照： <a href="SybCommand.html#cursor_rows">SybCommand#cursor_rows</a>)<p>
+  <b>curopt</b> には、カーソル割り当てのオプションを指定します。<br>
+  (参照： <a href="SybCommand.html#cursor_new">SybCommand#cursor_new</a>)<p>
+
+  <b>nbind</b>はバインドする最大カラム番号を指定します。通常は全てバイ
+  ンドするのでnilを指定して下さい。<p>
+
+  ブロックそ指定すれば、1 ローを検索する度に、ブロックが呼び出され、
+  select, update, delete などのネストされたコマンド実行もできます<p>
+    <dl>
+     <dt>ブロックの引数
+     <dd>
+       <table border=1>
+       <tr><td valign=top>cmd</td><td>SybCommand オブジェクト</td>
+       <tr><td valign=top>st</td><td>SybConstant::CS_SUCCEED または SybConstant::CS_ROW_FAIL</td>
+       <tr><td valign=top>col</td><td>カラム名配列</td>
+       <tr><td valign=top>row</td><td>ローデータの配列</td>
+       </table>
+     <dt>リターン値<br>
+     <dd>
+     <table border=1>
+       <tr><td valign=top>true</td><td>rowをresultメソッドが返す結果に加える</td>
+       <tr><td valign=top>nil</td><td>rowをresultメソッドが返す結果に加えない。<br>
+			(巨大ローを検索する時に、メモリを節約するのに使える)</td>
+       <tr><td valign=top>false</td><td> fetch をキャンセルする。</td>
+       </table>
+     </dl>
+  <p>
+  例<br>
+    sample/cursor_disp.rb 及び sample/cursor_update.rb を参考にしてく
+    ださい。<p>
+</dl>
+
+</body>
+</html>
+

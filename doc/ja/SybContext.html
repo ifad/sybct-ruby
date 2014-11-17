@@ -1,0 +1,63 @@
+<html>
+<head>
+<TITLE>SybContext class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybContext</h1>
+<ul>
+  SyBase クライアントライブラリーの CS_CONTEXT構造体の<b>Ruby</b>への
+  実装です。
+</ul><p>
+
+<h3>クラスメソッド</h3>
+<dl>
+<a name="create"><dt><b>create(lang=nil, timeout=0, async=nil)</b><br>
+<dd>
+  SyBaseクライアントライブラリーの初期化を行ない、新規にSybContextオブ
+  ジェクトを作成します。<p>
+  <b>lang</b> には、$SYBASE/locales/locales.datに登録されてあるロケー
+  ル名を指定し
+  て下さい。<p>
+  <b>timeout</b>には、接続タイムアウト秒を指定してください。省略時あるいは値
+  ０は、タイムアウトしないことを意味します。<p>
+  <b>async</b>は、マルチスレッドアプリケーションの場合は、必ず <b>
+true </b>に設定して下さい。<br>
+   asyncを true にすると、内部的には、遅延非同期IOを行なうモー
+  ドになり、sybase API のネットワーク入出力中においても、ruby のコンテ
+  クストスイッチが切り替わるようになります。
+</dl>
+
+<h3>メソッド</h3>
+<dl>
+<dt><b>destroy(force=false)</b><br>
+<dd>
+  クライアントライブラリーを終了させます。成功すると、true、失敗すると 
+falseを返します。(SyBase CTlib の ct_exit に相当)<p>
+
+  <b>force</b>に true を設定すると、未処理の結果のあるなしにかかわらず、
+  このコンテクスト内の全ての接続を切断し、ライブラリーを終了させます。
+
+<dt><b>setprop(proptype, val)</b><br>
+<dd>
+  コンテクストレベルでの、クライアントライブラリー特性を設定し、成功す
+ると true、失敗すると falseを返します。(SyBase CTlib の 
+ct_config(CS_SET) に相当)<p>
+  proptype には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+<dt><b>getprop(proptype)</b><br>
+<dd>
+  コンテクストレベルでの、クライアントライブラリー特性を検索します。
+  (SyBase CTlib の ct_config(CS_GET) に相当)<p>
+  proptype には、<a href="SybConstant.html">SybConstant</a>で定義され
+  ている定数を指定してください。<p>
+
+</dl>
+
+</body>
+</html>

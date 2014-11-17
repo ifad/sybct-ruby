@@ -1,0 +1,108 @@
+<html>
+<head>
+<TITLE>SybSQLContext class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">index</a>
+</p>
+
+<h1>SybSQLContext</h1>
+
+  SybSQLContext installs the default callbacks.<p>
+
+<h3>Super Class</h3>
+<menu>
+<li><a href="SybContext.html">SybContext</a><br>
+</menu>
+
+<h3>Included Modules</h3>
+<menu>
+<li><a href="SybConstant.html">SybConstant</a><br>
+</menu><p>
+
+<h3>Methods</h3>
+<dl>
+<dt><b>srvmsgCB ( <var>con</var>, <var>msghash</var> )</b><br>
+<dd>
+  This is the default Server Message Callback used in <a href="SybSQL.html">SybSQL</a>class.<p>
+
+  <b>Parameters:</b>
+  <ul type=disc>
+  <li><b><var>con</var></b><br>
+    <a href="SybConnection.html">SybConnection</a> object which 
+caused the message.<p>
+  <li><b><var>msghash</var></b><br>
+    <b><var>msghash</var></b> parameter's key is equivalent to the
+fieldname of CS_SERVERMSG  structure.<br>
+    <b><var>msghash</var></b> parameter's value is equivalent to the 
+field value of CS_SERVERMSG structure.<br>        
+  <table border=1>
+  <caption>
+   Details for key-value pair for <b><var>msghash</var></b> parameter
+  </caption>
+  <tr><th>Key</th><th>Value</th>
+  <tr><td>'msgnumber'</td><td>The server message number.</td>
+  <tr><td>'severity'</td><td>The severity of the message.</td>
+  <tr><td>'state'</td><td>The server error state.</td>
+  <tr><td>'line'</td><td>The line number that caused the message</td>
+  <tr><td>'status'</td><td>The status of the message</td>
+  <tr><td>'srvname'</td><td>The name of the server 
+                               that generated the message. </td>
+  <tr><td>'text'</td><td>The text string of the server message.</td>
+  <tr><td>'proc'</td><td>The name of the stored procedure
+                               that caused the message.</td>
+  <tr><td>'sqlstate'</td><td>The byte string describing the error.</td>
+  </table>
+  </ul>
+  <p>
+  Extend Error Data is not implemented, yet<p>
+  (Please see the Sybase OpenClient manual pages on Callbacks
+for further details.)<p>
+
+<dt><b>cltmsgCB ( <var>con</var>, <var>msghash</var>)</b><br>
+<dd>
+  This is the default Client Message Callback used in 
+<a href="SybSQL.html">SybSQL</a>class.<p>
+  <b>Parameters:</b>
+  <ul type=disc>
+  <li><b><var>con</var></b><br>
+    <a href="SybConnection.html">SybConnection</a> object which 
+caused the message.<p>
+  <li><b><var>msghash</var></b><br>
+   <b><var>msghash</var></b> parameter's key is equivalent to the
+fieldname of CS_CLIENTMSG  structure.<br>
+    <b><var>msghash</var></b> parameter's value is equivalent to the 
+field value of CS_CLIENTMSG structure.<br>        
+  <table border=1>
+  <caption>
+   Details for key-value pair for <b><var>msghash</var></b> parameter
+  </caption>
+  <tr><th>Key</th><th>Value</th>
+  <tr><td>'msgstring'</td><td>The Client-Library message string.</td>
+  <tr><td>'osstring'</td><td>The OS error string.</td>
+  <tr><td>'sqlstate'</td><td>The byte string describing the error.</td>
+  <tr><td>'status'</td><td>'first','last', or 'both' </td>
+  <tr><td>'msgnumber'</td><td>The Client-Library message number.</td>
+  <tr><td>'layer'</td><td>CS_LAYER(msg->msgnumber)</td>
+  <tr><td>'origin'</td><td>CS_ORIGIN(msg->msgnumber)</td>
+  <tr><td>'number'</td><td>CS_NUMBER(msg->msgnumber)</td>
+  <tr><td>'severity'</td><td>
+  nil -- No error has occurred. The message is informational.<br>
+  'CONFIG_FAIL' --  SyBase configuration error <br>
+  'RETRY_FAIL' -- Probably it means query timeout<br>
+  'API_FAIL' -- Probably it is means grammar mistake<br>
+  'RESOIRCE_FAIL' -- Probably, it means a lack of resources <br>
+  'COMM_FAIL' -- Error in the server communication<br>
+  'INTERNAL_FAIL' -- The internal Client-Library error<br>
+  'FATAL' -- A serious error has occurred<var><br>
+  'unknown' -- Unknown<br>
+  </td>
+  </table>
+  (Please see the Sybase OpenClient manual pages on Callbacks
+for further details.)<p>
+
+</dl>
+</body>
+</html>

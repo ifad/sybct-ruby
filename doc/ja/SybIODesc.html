@@ -1,0 +1,55 @@
+<html>
+<head>
+<TITLE>SybIODesc class</TITLE>
+</head>
+<body text="black" bgcolor="white">
+
+<p align=right>
+<a href="index.html">目次に戻る</a>
+</p>
+
+<h1>SybIODesc</h1>
+<ul>
+  SyBase クライアントライブラリーの、CS_IODESC構造体（入出力記述子構造体）の
+<b>Ruby</b>への実装です。<p>
+  このオブジェクト自身は、<a href="SybCommand.html">SybCommand</a>
+のget_iodescメソッドによって生成されます。<p>
+</ul><p>
+
+<h3>メソッド</h3>
+<dl>
+<dt><b>props( hash=nil )</b><p>
+<dd>
+  hash を指定すると、SybIODesc のCS_IODESC構造体メンバーを設定し、変更後の値を HASHで返します。<br>
+  hash を省略すると、SybIODesc の CS_IODESC構造体メンバーが HASHで返り
+  ます <p>
+  props(<var>hash</var>) でメンバー値を設定をする場合、対応するキーが
+  <var>hash</var>になければ、そのキーに対応する CS_IODESC 構造体メンバー
+  は変更されません。<p>
+
+  <table border=1>
+  <caption><b>hash</b> の キー と値について </caption>
+  <tr><th> Key </th><th>Value</th>
+  <tr><td>'datatype'</td>
+         <td>SybConstant::CS_IMAGE_TYPE<br> または CS_TEXT_TYPE</td>
+  <tr><td>'total_txtlen'</td><td>データの全長(Byte)</td>
+  <tr><td>'log_on_update'</td>
+          <td>true -- トランザクションログに書き込む<br>
+              false -- トランザクションログに書き込まない<br>
+  <tr><td>'name'</td><td>カラム名</td>
+  <tr><td>'timestamp'</td><td>タイムスタンプ (Stringオブジェクト)</td>
+  <tr><td>'textptr'</td><td>カラムのテキストポインタ(Stringオブジェクト)</td>
+  </table>
+<p>
+  例  （データ挿入時にログを取らず、全データ長を 1234バイトに設定する）
+  <pre>
+  iodesc.props( { 'log_on_update'=> false ,
+                  'total_txtlen' => 1234 } )
+  </pre>
+</dl>
+
+
+</body>
+</html>
+    
+
