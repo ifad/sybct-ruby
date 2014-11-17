@@ -9,8 +9,8 @@ sybase_ocs = sybase
 #sybase_ocs = "#{sybase}/OCS-12_5"
 
 ## gcc
-$LDFLAGS = " -L#{sybase_ocs}/lib " 
-# To use the 64-bit OpenClient:                     
+$LDFLAGS = " -L#{sybase_ocs}/lib "
+# To use the 64-bit OpenClient:
 # $CFLAGS = "-g -Wall -I#{sybase_ocs}/include -DSYB_LP64"
 # To use the 32-bit OpenClient:
 $CFLAGS = "-g -Wall -I#{sybase_ocs}/include"
@@ -25,8 +25,8 @@ $CFLAGS = "-g -Wall -I#{sybase_ocs}/include"
 
 ## For ASE11 Linux (glibc)
 # $LOCAL_LIBS = "-lct -lcs -lsybtcl -lcomn -lintl -linsck -ldl -lm"
-#  ( Note:  In some system, there is a conflict between 
-#              /usr/lib/libintl.so and $SYBASE/XXX/lib/libintl.so 
+#  ( Note:  In some system, there is a conflict between
+#              /usr/lib/libintl.so and $SYBASE/XXX/lib/libintl.so
 #           This case:
 #              cd $SYBASE/lib
 #              ln -s libintl.so libsybintl.so
@@ -61,10 +61,10 @@ $LOCAL_LIBS = "-lct -lcs -lsybtcl -lcomn -lintl -rdynamic -ldl -lnsl -lm"
 # sybase = "/Applications/Sybase/System"
 # sybase_ocs = "#{sybase}/OCS-12_5"
 # $CFLAGS = "-g -Wall -I#{sybase_ocs}/include"
-# $LDFLAGS = " -L#{sybase_ocs}/lib -L#{sybase_ocs}/frameworks/SybaseOpenClient.framework/Versions/Current/PrivateHeaders" 
+# $LDFLAGS = " -L#{sybase_ocs}/lib -L#{sybase_ocs}/frameworks/SybaseOpenClient.framework/Versions/Current/PrivateHeaders"
 # $LOCAL_LIBS = "-lsybct -lsybtcl -lsybcs -lsybcomn -lsybintl -lSystem"
 # #$LOCAL_LIBS = "-lsybct_r   -lsybtcl_r -lsybcs_r -lsybcomn_r -lsybintl_r  -lSystem"
-# $EXTRA_LIBS = "-liconv"   
+# $EXTRA_LIBS = "-liconv"
 ###########################################################
 
 ### Linux + Free TDS (freetds-0.64 or above) ################
@@ -76,7 +76,7 @@ $LOCAL_LIBS = "-lct  -lsybdb -rdynamic -ldl -lnsl -lm"
 ### mac-osx-tiger + Free TDS (freetds-0.64 ) ################
 # sybase = "/usr/local/freetds"
 # $CFLAGS = "-g -Wall -DFREETDS -I#{sybase}/include"
-# $LDFLAGS = " -L#{sybase}/lib " 
+# $LDFLAGS = " -L#{sybase}/lib "
 # $LOCAL_LIBS = "-lct  -lsybdb -ltds -lSystem -liconv"
 
 ## For SunOS5.X GCC (use dynamic libs) ??
@@ -111,7 +111,7 @@ end
 use_str2cstr = "-DUSE_STR2CSTR"
 use_str2cstr = "" if (ruby_version_high?("1.7.0") )
 
-# ruby1.9.1 has not rb_thread_critical, has native thread 
+# ruby1.9.1 has not rb_thread_critical, has native thread
 has_thread_critical = "-DHAS_THREAD_CRITICAL"
 has_thread_critical = "" if ruby_version_high?("1.9.1")
 
