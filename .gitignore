@@ -1,0 +1,4 @@
+.RUBYARCHDIR.time
+Makefile
+sybct.o
+sybct.so
